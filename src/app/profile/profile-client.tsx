@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import {
   User, Settings, LogOut, BarChart3, Globe, BookOpen,
@@ -15,29 +14,12 @@ import LevelBadge from '@/components/ui/LevelBadge';
 import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 
-interface UserProfileData {
-  id: number;
-  username: string;
-  email: string;
-  level: number;
-  xp: number;
-  xp_next: number;
-  mastered_words: number;
-  streak: number;
-  avatar_url: string | null;
-}
-
 const RECOMMENDED_LEVELS = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 
 export default function ProfileClient() {
   const { user, loading: authLoading, logout } = useAuthStore();
-  const [profile, setProfile] = useState<UserProfileData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  const xpPct = profile ? Math.min((profile.xp / (profile.xp_next || 100)) * 100, 100) : 0;
-
-  if (authLoading || loading) {
+  if (authLoading) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         <Skeleton variant="text" width={200} />

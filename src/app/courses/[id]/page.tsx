@@ -85,9 +85,9 @@ function UnitAccordion({
       </summary>
 
       <div className="px-5 pb-4 space-y-1.5">
-        {lessons.map((lesson, li) => {
+        {lessons.map((lesson) => {
           const IconComp = TYPE_ICONS[lesson.type] || BookOpen;
-          const isLocked = li > 0;
+          const isLocked = false;
           const isCompleted = false;
           const badgeVariant = TYPE_BADGES[lesson.type] || 'muted';
 

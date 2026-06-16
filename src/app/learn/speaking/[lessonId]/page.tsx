@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Mic, Play, Loader2, CheckCircle2, RotateCcw, Volume2
+  ArrowLeft, Mic, Play, Loader2, CheckCircle2, RotateCcw, Volume2, MicOff
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -19,6 +19,30 @@ interface SpeakingPrompt {
   phonetic: string | null;
   audio_url: string;
   difficulty: number;
+}
+
+// Declare Web Speech API types
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition?: new () => SpeechRecognition;
+    webkitSpeechRecognition?: new () => SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  lang: string;
+  interimResults: boolean;
+  continuous: boolean;
+  onresult: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  start(): void;
+  stop(): void;
 }
 
 export default function SpeakingLearnPage() {
@@ -38,6 +62,10 @@ export default function SpeakingLearnPage() {
 
   const [scored, setScored] = useState(false);
   const [scores, setScores] = useState({ accuracy: 0, fluency: 0, completeness: 0 });
+
+  const [isRecognizing, setIsRecognizing] = useState(false);
+  const [recognizedText, setRecognizedText] = useState('');
+  const recognitionRef = useRef<unknown>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -64,6 +92,33 @@ export default function SpeakingLearnPage() {
   const playNativeAudio = (url: string) => {
     const audio = new Audio(url);
     audio.play().catch(() => {});
+  };
+
+  const startRecognition = () => {
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionAPI) return;
+    const recognition = new SpeechRecognitionAPI();
+    recognition.lang = 'en-US';
+    recognition.interimResults = true;
+    recognition.continuous = false;
+    recognition.onresult = (event: Event) => {
+      const evt = event as unknown as { results: SpeechRecognitionResultList };
+      const transcript = Array.from(evt.results)
+        .map((r) => ((r[0] as SpeechRecognitionAlternative).transcript))
+        .join('');
+      setRecognizedText(transcript);
+    };
+    recognition.onend = () => setIsRecognizing(false);
+    recognition.onerror = () => setIsRecognizing(false);
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsRecognizing(true);
+    setRecognizedText('');
+  };
+
+  const stopRecognition = () => {
+    (recognitionRef.current as SpeechRecognition | null)?.stop();
+    setIsRecognizing(false);
   };
 
   const startRecording = async () => {
@@ -244,6 +299,26 @@ export default function SpeakingLearnPage() {
             <Volume2 className="w-4 h-4 text-[var(--accent)]" />
             播放原声
           </button>
+
+          {/* Speech recognition test */}
+          <div className="pt-2 border-t border-[var(--card-border)]">
+            <p className="text-xs text-[var(--muted)] mb-2">语音识别测试</p>
+            <div className="flex items-center justify-center gap-3">
+              <button
+                onClick={isRecognizing ? stopRecognition : startRecognition}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl transition-colors text-sm
+                  ${isRecognizing ? 'bg-[var(--danger)] text-white' : 'glass hover:bg-[var(--card-bg)]'}`}
+              >
+                {isRecognizing ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isRecognizing ? '停止识别' : '开始识别'}
+              </button>
+            </div>
+            {recognizedText && (
+              <p className="mt-2 p-3 rounded-xl bg-[var(--accent-muted)] text-sm text-[var(--foreground)] text-center">
+                {recognizedText}
+              </p>
+            )}
+          </div>
         </div>
       </Card>
 

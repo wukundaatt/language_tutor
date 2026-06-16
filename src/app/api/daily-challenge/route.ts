@@ -1,5 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import { NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
 
@@ -7,7 +6,7 @@ export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ authenticated: false, user: null });
     }
 
     const db = getDb();
@@ -86,7 +85,7 @@ export async function POST() {
   try {
     const user = await getAuthUser();
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ authenticated: false, user: null });
     }
 
     const db = getDb();

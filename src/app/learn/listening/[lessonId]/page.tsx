@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Play, Pause, RotateCcw, Loader2, CheckCircle2, Headphones
+  ArrowLeft, Play, Pause, RotateCcw, Loader2, CheckCircle2, Headphones, Volume2
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -65,6 +65,16 @@ export default function ListeningLearnPage() {
   const [duration, setDuration] = useState(0);
   const [audioFailed, setAudioFailed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const speakWithTTS = useCallback((text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = speed;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [speed]);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -249,6 +259,13 @@ export default function ListeningLearnPage() {
               {question.transcript && (
                 <p className="text-sm text-[var(--foreground)] mt-2 italic">{question.transcript}</p>
               )}
+              <button
+                onClick={() => speakWithTTS(question.transcript || question.question)}
+                className="inline-flex items-center gap-2 px-4 py-2 mt-2 rounded-xl glass hover:bg-[var(--card-bg)] transition-colors text-sm text-[var(--accent)]"
+              >
+                <Volume2 className="w-4 h-4" />
+                TTS 朗读
+              </button>
             </div>
           ) : (
             <>

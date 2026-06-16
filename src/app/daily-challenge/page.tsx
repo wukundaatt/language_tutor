@@ -21,6 +21,15 @@ interface ChallengeTask {
   correctAnswer: string;
 }
 
+function parseOptions(raw: unknown): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as string[];
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return []; }
+  }
+  return [];
+}
+
 export default function DailyChallengePage() {
   const { isAuthenticated, loading: authLoading } = useAuthStore();
   const [tasks, setTasks] = useState<ChallengeTask[]>([]);
@@ -39,13 +48,21 @@ export default function DailyChallengePage() {
       const res = await fetch('/api/daily-challenge', { credentials: 'include' });
       if (!res.ok) throw new Error('加载失败');
       const data = await res.json();
-      const list = (data.tasks || data || []).map((t: Record<string, unknown>) => ({
-        id: t.id as number,
-        type: t.type as string,
-        question: t.question as string,
-        options: typeof t.options === 'string' ? JSON.parse(t.options as string) : (t.options as string[]),
-        correctAnswer: t.correct_answer as string,
-      }));
+      if (data.authenticated === false) {
+        setError('请先登录');
+        setLoading(false);
+        return;
+      }
+      const list = (data.tasks || data || []).map((t: Record<string, unknown>) => {
+        const q = t.question as Record<string, unknown> | null;
+        return {
+          id: t.id as number,
+          type: t.type as string,
+          question: (q?.question as string) || (t.question as string),
+          options: parseOptions(q?.options_json ?? t.options),
+          correctAnswer: (q?.correct_answer as string) || (t.correct_answer as string),
+        };
+      });
       setTasks(list);
     } catch {
       setError('无法加载每日挑战');
