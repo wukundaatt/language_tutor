@@ -7,11 +7,9 @@ import {
   Calendar, Award, Lock
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-import { useAuthStore } from '@/stores/authStore';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import StatCard from '@/components/ui/StatCard';
-import SectionHeader from '@/components/ui/SectionHeader';
 import EmptyState from '@/components/ui/EmptyState';
 
 const CHART_COLORS = ['var(--accent)', '#10b981', '#f59e0b', '#a855f7', '#ef4444', '#3b82f6'];
@@ -240,11 +238,21 @@ export default function ProgressClient({ isAuthenticated, progressData, badges, 
           </Button>
         </div>
         {heatmapVisible && (
-          <div className="grid grid-cols-7 gap-1 md:gap-1.5">
-            {heatmap.map((d) => (
-              <HeatmapCell key={d.date} date={d.date} count={d.count} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-7 gap-1 md:gap-1.5">
+              {heatmap.map((d) => (
+                <HeatmapCell key={d.date} date={d.date} count={d.count} />
+              ))}
+            </div>
+            {heatmap.every((d) => d.count === 0) && (
+              <div className="mt-4 text-center space-y-2">
+                <p className="text-sm text-[var(--muted)]">还没有学习记录</p>
+                <Link href="/courses">
+                  <Button variant="gold" size="sm">去学习</Button>
+                </Link>
+              </div>
+            )}
+          </>
         )}
       </Card>
 

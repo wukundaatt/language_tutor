@@ -24,6 +24,15 @@ interface Post {
   user_level: number;
 }
 
+interface Comment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  username: string;
+  content: string;
+  created_at: string;
+}
+
 interface LeaderboardUser {
   id: number;
   username: string;
@@ -86,6 +95,12 @@ export default function CommunityClient({
   const [newPost, setNewPost] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
+  const [expandedPostId, setExpandedPostId] = useState<number | null>(null);
+  const [comments, setComments] = useState<Record<number, Comment[]>>({});
+  const [commentInput, setCommentInput] = useState('');
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [submittingComment, setSubmittingComment] = useState(false);
+
   const fetchPosts = async () => {
     try {
       const res = await fetch('/api/community/posts', { credentials: 'include' });
@@ -132,6 +147,46 @@ export default function CommunityClient({
       });
       fetchPosts();
     } catch { /* ignore */ }
+  };
+
+  const fetchComments = async (postId: number) => {
+    setLoadingComments(true);
+    try {
+      const res = await fetch(`/api/community/posts/${postId}/comments`, { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setComments((prev) => ({ ...prev, [postId]: data }));
+      }
+    } catch { /* ignore */ }
+    setLoadingComments(false);
+  };
+
+  const toggleComments = (postId: number) => {
+    if (expandedPostId === postId) {
+      setExpandedPostId(null);
+    } else {
+      setExpandedPostId(postId);
+      if (!comments[postId]) fetchComments(postId);
+    }
+  };
+
+  const handleCommentSubmit = async (postId: number) => {
+    if (!commentInput.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const res = await fetch(`/api/community/posts/${postId}/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ content: commentInput }),
+      });
+      if (res.ok) {
+        setCommentInput('');
+        fetchComments(postId);
+        fetchPosts();
+      }
+    } catch { /* ignore */ }
+    setSubmittingComment(false);
   };
 
   if (authLoading || loading) {
@@ -225,7 +280,11 @@ export default function CommunityClient({
                           <Heart className={`w-4 h-4 ${userLikedPosts.includes(post.id) ? 'fill-current' : ''}`} />
                           {post.likes > 0 && post.likes}
                         </button>
-                        <button className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+                        <button
+                          onClick={() => toggleComments(post.id)}
+                          className={`flex items-center gap-1.5 text-xs transition-colors
+                            ${expandedPostId === post.id ? 'text-[var(--accent)]' : 'text-[var(--muted)] hover:text-[var(--foreground)]'}`}
+                        >
                           <MessageCircle className="w-4 h-4" />
                           {post.comment_count > 0 && post.comment_count}
                         </button>
@@ -235,6 +294,64 @@ export default function CommunityClient({
                       </div>
                     </div>
                   </div>
+
+                  {/* Inline comments */}
+                  {expandedPostId === post.id && (
+                    <div className="mt-3 pt-3 border-t border-[var(--card-border)] space-y-3">
+                      {/* Loading */}
+                      {loadingComments && (
+                        <div className="flex items-center justify-center py-2">
+                          <Loader2 className="w-4 h-4 text-[var(--muted)] animate-spin" />
+                        </div>
+                      )}
+
+                      {/* Comment list */}
+                      {!loadingComments && comments[post.id] && comments[post.id].length > 0 && (
+                        <div className="space-y-2">
+                          {comments[post.id].map((c) => (
+                            <div key={c.id} className="flex gap-2.5">
+                              <AvatarInitial name={c.username} />
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-semibold text-[var(--foreground)]">{c.username}</span>
+                                  <span className="text-[0.65rem] text-[var(--muted)]">{timeAgo(c.created_at)}</span>
+                                </div>
+                                <p className="text-xs text-[var(--foreground)] mt-0.5 leading-relaxed">{c.content}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Empty */}
+                      {!loadingComments && comments[post.id] && comments[post.id].length === 0 && (
+                        <p className="text-xs text-[var(--muted)] text-center py-1">暂无评论，来说两句吧</p>
+                      )}
+
+                      {/* Comment input */}
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={commentInput}
+                          onChange={(e) => setCommentInput(e.target.value)}
+                          placeholder="写下你的评论..."
+                          className="flex-1 px-3 py-2 rounded-xl bg-[var(--background)] border border-[var(--card-border)]
+                                     text-xs text-[var(--foreground)] placeholder:text-[var(--muted)]
+                                     focus:outline-none focus:ring-1 focus:ring-[var(--accent)]/50 transition-all"
+                        />
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={!commentInput.trim() || submittingComment}
+                          loading={submittingComment}
+                          onClick={() => handleCommentSubmit(post.id)}
+                          icon={<Send className="w-3.5 h-3.5" />}
+                        >
+                          发送
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </Card>
               ))}
             </div>

@@ -313,7 +313,7 @@ export default function DailyChallengePage() {
                     key={opt}
                     onClick={() => handleAnswer(opt)}
                     disabled={answered}
-                    className={`w-full p-4 rounded-xl border text-left font-medium transition-all duration-200
+                    className={`w-full p-4 min-h-[44px] rounded-xl border text-left font-medium transition-all duration-200
                       ${bg} ${border}
                       ${!answered ? 'hover:border-[var(--accent)]/50 hover:bg-[var(--accent-muted)]' : ''}
                       ${answered && opt !== task.correctAnswer && opt !== selected ? 'opacity-50' : ''}

@@ -222,7 +222,7 @@ export default function GrammarLearnPage() {
                   key={opt}
                   onClick={() => handleSelect(opt)}
                   disabled={answerState !== 'idle'}
-                  className={`w-full p-4 rounded-xl border text-left font-medium transition-all duration-200
+                  className={`w-full p-4 min-h-[44px] rounded-xl border text-left font-medium transition-all duration-200
                     ${bgStyle} ${borderStyle}
                     ${answerState === 'idle'
                       ? 'hover:border-[var(--accent)]/50 hover:bg-[var(--accent-muted)]'

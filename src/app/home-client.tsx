@@ -134,16 +134,33 @@ export default function HomeClient({
           </p>
 
           <div className="flex items-center justify-center gap-4 pt-4 flex-wrap">
-            <Link href="/courses">
-              <Button variant="primary" size="lg" icon={<BookOpen className="w-5 h-5" />}>
-                开始学习
-              </Button>
-            </Link>
-            <Link href="/courses">
-              <Button variant="gold" size="lg">
-                探索课程
-              </Button>
-            </Link>
+            {isAuthenticated ? (
+              <>
+                <Link href="/courses">
+                  <Button variant="primary" size="lg" icon={<BookOpen className="w-5 h-5" />}>
+                    开始学习
+                  </Button>
+                </Link>
+                <Link href="/courses">
+                  <Button variant="gold" size="lg">
+                    探索课程
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link href="/register">
+                  <Button variant="primary" size="lg" icon={<BookOpen className="w-5 h-5" />}>
+                    免费开始学习
+                  </Button>
+                </Link>
+                <Link href="/courses">
+                  <Button variant="gold" size="lg">
+                    浏览课程
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
