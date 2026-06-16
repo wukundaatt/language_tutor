@@ -58,6 +58,8 @@ export default function ListeningLearnPage() {
   const [error, setError] = useState('');
   const [completed, setCompleted] = useState(false);
   const [score, setScore] = useState(0);
+  const [progressSubmitted, setProgressSubmitted] = useState(false);
+  const startTime = Date.now();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -104,6 +106,29 @@ export default function ListeningLearnPage() {
     }
   }, [speed]);
 
+  const submitLessonProgress = useCallback(async (correctCount: number, total: number) => {
+    if (progressSubmitted) return;
+    const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+    const xpEarned = correctCount * 10 + Math.round(total * 2);
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          lessonId: parseInt(lessonId),
+          type: 'listening',
+          score: correctCount * 10,
+          timeSpent,
+          xpEarned,
+        }),
+      });
+      setProgressSubmitted(true);
+    } catch {
+      // ignore
+    }
+  }, [lessonId, progressSubmitted, startTime]);
+
   const handlePlayPause = () => {
     if (!audioRef.current) return;
     if (isPlaying) {
@@ -144,6 +169,7 @@ export default function ListeningLearnPage() {
         audioRef.current.currentTime = 0;
       }
     } else {
+      submitLessonProgress(score, questions.length);
       setCompleted(true);
     }
   };

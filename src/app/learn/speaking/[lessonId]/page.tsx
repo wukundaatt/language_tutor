@@ -54,6 +54,8 @@ export default function SpeakingLearnPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [completed, setCompleted] = useState(false);
+  const [progressSubmitted, setProgressSubmitted] = useState(false);
+  const startTime = Date.now();
 
   const [isRecording, setIsRecording] = useState(false);
   const [recordTime, setRecordTime] = useState(0);
@@ -62,6 +64,7 @@ export default function SpeakingLearnPage() {
 
   const [scored, setScored] = useState(false);
   const [scores, setScores] = useState({ accuracy: 0, fluency: 0, completeness: 0 });
+  const [totalScore, setTotalScore] = useState(0);
 
   const [isRecognizing, setIsRecognizing] = useState(false);
   const [recognizedText, setRecognizedText] = useState('');
@@ -88,6 +91,29 @@ export default function SpeakingLearnPage() {
   useEffect(() => {
     fetchPrompts();
   }, [fetchPrompts]);
+
+  const submitLessonProgress = useCallback(async (totalScore: number, total: number) => {
+    if (progressSubmitted) return;
+    const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+    const xpEarned = totalScore + Math.round(total * 2);
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          lessonId: parseInt(lessonId),
+          type: 'speaking',
+          score: totalScore,
+          timeSpent,
+          xpEarned,
+        }),
+      });
+      setProgressSubmitted(true);
+    } catch {
+      // ignore
+    }
+  }, [lessonId, progressSubmitted, startTime]);
 
   const playNativeAudio = (url: string) => {
     const audio = new Audio(url);
@@ -180,11 +206,13 @@ export default function SpeakingLearnPage() {
   };
 
   const handleScore = () => {
-    setScores({
+    const newScores = {
       accuracy: Math.floor(60 + Math.random() * 35),
       fluency: Math.floor(55 + Math.random() * 40),
       completeness: Math.floor(65 + Math.random() * 30),
-    });
+    };
+    setScores(newScores);
+    setTotalScore((s) => s + newScores.accuracy + newScores.fluency + newScores.completeness);
     setScored(true);
   };
 
@@ -196,6 +224,7 @@ export default function SpeakingLearnPage() {
       setRecordTime(0);
       setScored(false);
     } else {
+      submitLessonProgress(totalScore, prompts.length * 100);
       setCompleted(true);
     }
   };

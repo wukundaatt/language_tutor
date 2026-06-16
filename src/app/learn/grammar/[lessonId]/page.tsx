@@ -56,6 +56,8 @@ export default function GrammarLearnPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [completed, setCompleted] = useState(false);
+  const [progressSubmitted, setProgressSubmitted] = useState(false);
+  const startTime = Date.now();
 
   const fetchQuestions = useCallback(async () => {
     try {
@@ -75,6 +77,29 @@ export default function GrammarLearnPage() {
     fetchQuestions();
   }, [fetchQuestions]);
 
+  const submitLessonProgress = useCallback(async (correctCount: number, total: number) => {
+    if (progressSubmitted) return;
+    const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+    const xpEarned = correctCount * 10 + Math.round(total * 2);
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          lessonId: parseInt(lessonId),
+          type: 'grammar',
+          score: correctCount * 10,
+          timeSpent,
+          xpEarned,
+        }),
+      });
+      setProgressSubmitted(true);
+    } catch {
+      // ignore
+    }
+  }, [lessonId, progressSubmitted, startTime]);
+
   const handleSelect = (option: string) => {
     if (answerState !== 'idle') return;
     setSelected(option);
@@ -93,6 +118,7 @@ export default function GrammarLearnPage() {
       setSelected(null);
       setAnswerState('idle');
     } else {
+      submitLessonProgress(score, questions.length);
       setCompleted(true);
     }
   };
