@@ -1,305 +1,294 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import { Send, Heart, MessageCircle, Trophy, TrendingUp, Users, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
+import {
+  Heart, MessageCircle, Share2, Send, Trophy, Medal, Crown,
+  Loader2, MessageSquare
+} from 'lucide-react';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
+import Skeleton from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
 
-interface PostRow {
+interface Post {
   id: number;
   user_id: number;
-  content: string;
-  likes: number;
-  created_at: string;
   username: string;
+  content: string;
+  created_at: string;
+  likes: number;
+  comment_count: number;
   user_avatar: string | null;
   user_level: number;
-  comment_count: number;
 }
 
-interface LeaderboardRow {
+interface LeaderboardUser {
   id: number;
   username: string;
-  level: number;
   xp: number;
-  streak: number;
+  level: number;
+  rank?: number;
+}
+
+function timeAgo(dateStr: string): string {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  if (seconds < 60) return '刚刚';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} 分钟前`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} 小时前`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} 天前`;
+  return `${Math.floor(seconds / 604800)} 周前`;
+}
+
+function AvatarInitial({ name }: { name: string }) {
+  const colors = ['#d4a853', '#4d9375', '#c4554d', '#6b8cce', '#a855f7', '#e879f9'];
+  const color = colors[name.length % colors.length];
+  return (
+    <div
+      className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0"
+      style={{ backgroundColor: `${color}20`, color }}
+    >
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function RankIcon({ rank }: { rank: number }) {
+  if (rank === 1) return <Crown className="w-5 h-5 text-[#f59e0b]" />;
+  if (rank === 2) return <Medal className="w-5 h-5 text-[#94a3b8]" />;
+  if (rank === 3) return <Medal className="w-5 h-5 text-[#d97706]" />;
+  return <span className="text-sm font-bold text-[var(--muted)] w-5 text-center">{rank}</span>;
 }
 
 interface CommunityClientProps {
   isAuthenticated: boolean;
   currentUserId: number | null;
-  posts: PostRow[];
-  leaderboard: LeaderboardRow[];
+  posts: Post[];
+  leaderboard: LeaderboardUser[];
   userLikedPosts: number[];
 }
 
-function timeAgo(dateStr: string): string {
-  const now = new Date();
-  const date = new Date(dateStr + 'Z');
-  const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
-  if (diff < 60) return '刚刚';
-  if (diff < 3600) return `${Math.floor(diff / 60)} 分钟前`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} 小时前`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)} 天前`;
-  return dateStr.slice(0, 10);
-}
-
 export default function CommunityClient({
-  isAuthenticated, currentUserId, posts: initialPosts, leaderboard, userLikedPosts,
+  isAuthenticated,
+  currentUserId,
+  posts: initialPosts,
+  leaderboard: initialLeaderboard,
+  userLikedPosts,
 }: CommunityClientProps) {
+  const { loading: authLoading } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'feed' | 'leaderboard'>('feed');
-  const [posts, setPosts] = useState<PostRow[]>(initialPosts);
-  const [likedPosts, setLikedPosts] = useState<Set<number>>(new Set(userLikedPosts));
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardUser[]>(initialLeaderboard);
+  const [loading, setLoading] = useState(false);
   const [newPost, setNewPost] = useState('');
-  const [posting, setPosting] = useState(false);
-  const user = useAuthStore((s) => s.user);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleLike = async (postId: number) => {
-    const isLiked = likedPosts.has(postId);
-    setLikedPosts((prev) => {
-      const next = new Set(prev);
-      if (isLiked) next.delete(postId);
-      else next.add(postId);
-      return next;
-    });
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === postId
-          ? { ...p, likes: p.likes + (isLiked ? -1 : 1) }
-          : p
-      )
-    );
+  const fetchPosts = async () => {
     try {
-      await fetch(`/api/community/posts/${postId}/like`, {
-        method: 'POST',
-        credentials: 'include',
-      });
-    } catch {
-      // revert on error could be added
-    }
+      const res = await fetch('/api/community/posts', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setPosts(data.posts || data || []);
+      }
+    } catch { /* ignore */ }
   };
 
-  const handleCreatePost = async () => {
-    if (!newPost.trim() || posting) return;
-    setPosting(true);
+  const fetchLeaderboard = async () => {
+    try {
+      const res = await fetch('/api/community/leaderboard', { credentials: 'include' });
+      if (res.ok) {
+        const data = await res.json();
+        setLeaderboard(data.users || data || []);
+      }
+    } catch { /* ignore */ }
+  };
+
+  const handleSubmit = async () => {
+    if (!newPost.trim()) return;
+    setSubmitting(true);
     try {
       const res = await fetch('/api/community/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ content: newPost.trim() }),
+        body: JSON.stringify({ content: newPost }),
       });
       if (res.ok) {
-        const data = await res.json();
-        const post = data.post || data;
-        setPosts((prev) => [
-          {
-            id: post.id,
-            user_id: user!.id,
-            content: newPost.trim(),
-            likes: 0,
-            created_at: new Date().toISOString(),
-            username: user!.username,
-            user_avatar: user!.avatarUrl,
-            user_level: user!.level,
-            comment_count: 0,
-          },
-          ...prev,
-        ]);
         setNewPost('');
+        fetchPosts();
       }
-    } catch {
-      // ignore
-    }
-    setPosting(false);
+    } catch { /* ignore */ }
+    setSubmitting(false);
   };
 
-  const leaderboardTop = leaderboard.slice(0, 3);
-  const leaderboardRest = leaderboard.slice(3);
+  const handleLike = async (postId: number) => {
+    try {
+      await fetch(`/api/community/posts/${postId}/like`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      fetchPosts();
+    } catch { /* ignore */ }
+  };
+
+  if (authLoading || loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-8 space-y-6">
+        <Skeleton variant="text" width={200} />
+        <Skeleton variant="rectangular" width="100%" height={50} />
+        <Skeleton variant="rectangular" width="100%" height={150} />
+        <Skeleton variant="rectangular" width="100%" height={150} />
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      <h1 className="text-3xl font-bold animate-fade-in-up" style={{ fontFamily: 'var(--font-heading)' }}>
+    <div className="max-w-3xl mx-auto px-4 py-8 space-y-8 page-enter">
+      <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] font-[var(--font-heading)] animate-fade-in-up">
         社区
       </h1>
 
       {/* Tabs */}
-      <div className="flex gap-2">
-        <button
-          onClick={() => setActiveTab('feed')}
-          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all
-            ${activeTab === 'feed'
-              ? 'text-white bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]'
-              : 'glass hover:bg-[var(--card-bg)]'
-            }`}
-        >
-          <Users className="w-4 h-4 inline mr-1.5" />
-          动态
-        </button>
-        <button
-          onClick={() => setActiveTab('leaderboard')}
-          className={`px-5 py-2.5 rounded-xl text-sm font-medium transition-all
-            ${activeTab === 'leaderboard'
-              ? 'text-white bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]'
-              : 'glass hover:bg-[var(--card-bg)]'
-            }`}
-        >
-          <Trophy className="w-4 h-4 inline mr-1.5" />
-          排行榜
-        </button>
+      <div className="flex gap-1 p-1 rounded-2xl glass w-fit">
+        {[
+          { key: 'feed', label: '动态', icon: <MessageSquare className="w-4 h-4" /> },
+          { key: 'leaderboard', label: '排行榜', icon: <Trophy className="w-4 h-4" /> },
+        ].map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as 'feed' | 'leaderboard')}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200
+              ${activeTab === tab.key
+                ? 'bg-gradient-to-r from-[var(--accent)] to-[#c49a3c] text-[#0b1121] shadow-[0_2px_12px_rgba(212,168,83,0.25)]'
+                : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+              }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       {/* Feed tab */}
       {activeTab === 'feed' && (
-        <div className="space-y-5 stagger-children">
-          {/* Create post */}
-          {isAuthenticated && (
-            <div className="glass rounded-2xl p-4 space-y-3">
-              <textarea
-                value={newPost}
-                onChange={(e) => setNewPost(e.target.value)}
-                placeholder="分享你的学习心得..."
-                rows={3}
-                className="w-full resize-none bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)]
-                           focus:outline-none text-sm"
-              />
-              <div className="flex justify-end">
-                <button
-                  onClick={handleCreatePost}
-                  disabled={!newPost.trim() || posting}
-                  className="flex items-center gap-2 px-5 py-2 rounded-xl font-medium text-sm text-white
-                             bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                             hover:shadow-md hover:-translate-y-0.5 transition-all
-                             disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                >
-                  {posting && <Loader2 className="w-4 h-4 animate-spin" />}
-                  <Send className="w-4 h-4" />
-                  发布
-                </button>
-              </div>
+        <div className="space-y-6 animate-fade-in-up">
+          {/* Post creation */}
+          <Card variant="glass" padding="md">
+            <textarea
+              value={newPost}
+              onChange={(e) => setNewPost(e.target.value)}
+              placeholder="分享你的学习心得..."
+              rows={3}
+              className="w-full bg-transparent text-[var(--foreground)] placeholder:text-[var(--muted)] resize-none
+                         focus:outline-none text-sm leading-relaxed"
+            />
+            <div className="flex justify-end mt-3">
+              <Button
+                variant="primary"
+                size="md"
+                disabled={!newPost.trim() || submitting}
+                loading={submitting}
+                onClick={handleSubmit}
+                icon={<Send className="w-4 h-4" />}
+              >
+                发布
+              </Button>
             </div>
-          )}
+          </Card>
 
           {/* Posts */}
-          {posts.map((post) => (
-            <div key={post.id} className="glass rounded-2xl p-5 space-y-4">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white"
-                  style={{ backgroundColor: 'var(--accent)' }}
-                >
-                  {post.username.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <p className="text-sm font-semibold">{post.username}</p>
-                  <div className="flex items-center gap-2 text-xs text-[var(--muted)]">
-                    <span>Lv.{post.user_level}</span>
-                    <span>·</span>
-                    <span>{timeAgo(post.created_at)}</span>
+          {posts.length > 0 ? (
+            <div className="space-y-4 stagger-children">
+              {posts.map((post) => (
+                <Card key={post.id} variant="glass" padding="md" hover>
+                  <div className="flex gap-3">
+                    <AvatarInitial name={post.username} />
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-sm text-[var(--foreground)]">
+                          {post.username}
+                        </span>
+                        <span className="text-xs text-[var(--muted)]">{timeAgo(post.created_at)}</span>
+                      </div>
+                      <p className="text-sm text-[var(--foreground)] leading-relaxed whitespace-pre-wrap">
+                        {post.content}
+                      </p>
+                      <div className="flex items-center gap-5 pt-1">
+                        <button
+                          onClick={() => handleLike(post.id)}
+                          className={`flex items-center gap-1.5 text-xs transition-colors
+                            ${userLikedPosts.includes(post.id) ? 'text-[var(--danger)]' : 'text-[var(--muted)] hover:text-[var(--danger)]'}`}
+                        >
+                          <Heart className={`w-4 h-4 ${userLikedPosts.includes(post.id) ? 'fill-current' : ''}`} />
+                          {post.likes > 0 && post.likes}
+                        </button>
+                        <button className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+                          <MessageCircle className="w-4 h-4" />
+                          {post.comment_count > 0 && post.comment_count}
+                        </button>
+                        <button className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <p className="text-sm whitespace-pre-wrap">{post.content}</p>
-
-              <div className="flex items-center gap-4 pt-1 border-t border-[var(--card-border)]">
-                <button
-                  onClick={() => isAuthenticated && handleLike(post.id)}
-                  disabled={!isAuthenticated}
-                  className={`flex items-center gap-1.5 text-xs transition-colors ${
-                    likedPosts.has(post.id)
-                      ? 'text-red-400'
-                      : 'text-[var(--muted)] hover:text-red-400'
-                  }`}
-                >
-                  <Heart
-                    className={`w-4 h-4 ${likedPosts.has(post.id) ? 'fill-current' : ''}`}
-                  />
-                  {post.likes}
-                </button>
-                <button className="flex items-center gap-1.5 text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-                  <MessageCircle className="w-4 h-4" />
-                  {post.comment_count}
-                </button>
-              </div>
+                </Card>
+              ))}
             </div>
-          ))}
-
-          {posts.length === 0 && (
-            <div className="text-center py-16 text-[var(--muted)]">
-              <Users className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p>暂无动态，快来发布第一条吧！</p>
-            </div>
+          ) : (
+            <EmptyState
+              icon={<MessageSquare className="w-12 h-12" />}
+              title="暂无动态"
+              description="成为第一个分享学习心得的人"
+            />
           )}
         </div>
       )}
 
       {/* Leaderboard tab */}
       {activeTab === 'leaderboard' && (
-        <div className="space-y-6 stagger-children">
-          {/* Top 3 */}
-          {leaderboardTop.length > 0 && (
-            <div className="grid grid-cols-3 gap-4">
-              {leaderboardTop.map((u, i) => {
-                const medals = ['🥇', '🥈', '🥉'];
-                const sizes = ['large', 'medium', 'small'];
-                const tops = [0, 4, 8];
-                return (
-                  <div
-                    key={u.id}
-                    className="glass rounded-2xl p-4 text-center"
-                    style={{ marginTop: tops[i] }}
-                  >
-                    <div className="text-3xl mb-2">{medals[i]}</div>
-                    <p className="font-bold text-sm">{u.username}</p>
-                    <p className="text-xs text-[var(--muted)]">Lv.{u.level}</p>
-                    <p className="text-sm font-bold" style={{ color: 'var(--accent)' }}>
-                      {u.xp} XP
-                    </p>
+        <div className="space-y-3 stagger-children animate-fade-in-up">
+          {leaderboard.length > 0 ? (
+            leaderboard.map((user, idx) => {
+              const userRank = user.rank ?? idx + 1;
+              const isTop3 = userRank <= 3;
+              return (
+                <Card
+                  key={user.id}
+                  variant="glass"
+                  padding="md"
+                  className={`${isTop3 ? 'border-[rgba(212,168,83,0.2)]' : ''}`}
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 flex justify-center">
+                      <RankIcon rank={userRank} />
+                    </div>
+                    <AvatarInitial name={user.username} />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-semibold text-sm text-[var(--foreground)]">{user.username}</p>
+                      <p className="text-xs text-[var(--muted)]">Lv.{user.level}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm text-[var(--accent)]">{user.xp.toLocaleString()} XP</p>
+                      {isTop3 && (
+                        <Badge variant={userRank === 1 ? 'gold' : 'muted'} size="sm">
+                          {userRank === 1 ? '冠军' : userRank === 2 ? '亚军' : '季军'}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Table */}
-          <div className="glass rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-[48px_1fr_80px_60px_60px] gap-2 px-5 py-3 text-xs font-medium text-[var(--muted)] border-b border-[var(--card-border)]">
-              <span>#</span>
-              <span>用户</span>
-              <span>XP</span>
-              <span>等级</span>
-              <span>连续</span>
-            </div>
-            {leaderboardRest.map((u, i) => (
-              <div
-                key={u.id}
-                className={`grid grid-cols-[48px_1fr_80px_60px_60px] gap-2 px-5 py-3 text-sm items-center
-                  ${currentUserId === u.id ? 'bg-[var(--accent)]/10' : ''}
-                  hover:bg-[var(--card-bg)] transition-colors`}
-              >
-                <span className="text-[var(--muted)] font-mono">{i + 4}</span>
-                <div className="flex items-center gap-2 min-w-0">
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shrink-0"
-                    style={{ backgroundColor: 'var(--muted)' }}
-                  >
-                    {u.username.charAt(0).toUpperCase()}
-                  </div>
-                  <span className="truncate">{u.username}</span>
-                </div>
-                <span className="font-bold" style={{ color: 'var(--accent)' }}>{u.xp}</span>
-                <span className="text-[var(--muted)]">{u.level}</span>
-                <span className="text-[var(--muted)]">🔥 {u.streak}</span>
-              </div>
-            ))}
-          </div>
-
-          {leaderboard.length === 0 && (
-            <div className="text-center py-16 text-[var(--muted)]">
-              <Trophy className="w-12 h-12 mx-auto mb-3 opacity-40" />
-              <p>暂无排行数据</p>
-            </div>
+                </Card>
+              );
+            })
+          ) : (
+            <EmptyState
+              icon={<Trophy className="w-12 h-12" />}
+              title="暂无排行数据"
+              description="开始学习后即可上榜"
+            />
           )}
         </div>
       )}

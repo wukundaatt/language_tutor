@@ -6,6 +6,11 @@ import Link from 'next/link';
 import {
   ArrowLeft, Play, Pause, RotateCcw, Loader2, CheckCircle2, Headphones
 } from 'lucide-react';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import ProgressBar from '@/components/ui/ProgressBar';
+import Skeleton from '@/components/ui/Skeleton';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface ListeningQuestion {
   id: number;
@@ -54,7 +59,6 @@ export default function ListeningLearnPage() {
   const [completed, setCompleted] = useState(false);
   const [score, setScore] = useState(0);
 
-  // Audio state
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
@@ -62,7 +66,6 @@ export default function ListeningLearnPage() {
   const [audioFailed, setAudioFailed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Answer state
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
@@ -108,22 +111,6 @@ export default function ListeningLearnPage() {
     setIsPlaying(true);
   };
 
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current) {
-      setDuration(audioRef.current.duration);
-    }
-  };
-
-  const handleEnded = () => {
-    setIsPlaying(false);
-  };
-
   const handleSubmit = () => {
     if (!selected) return;
     const question = questions[currentIndex];
@@ -141,6 +128,7 @@ export default function ListeningLearnPage() {
       setSubmitted(false);
       setIsPlaying(false);
       setCurrentTime(0);
+      setAudioFailed(false);
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current.currentTime = 0;
@@ -150,49 +138,68 @@ export default function ListeningLearnPage() {
     }
   };
 
+  // Loading
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 flex flex-col items-center gap-4">
-        <Loader2 className="w-8 h-8 animate-spin" style={{ color: 'var(--accent)' }} />
-        <p className="text-[var(--muted)]">加载中...</p>
+      <div className="max-w-2xl mx-auto px-4 py-16 space-y-6">
+        <Skeleton variant="text" width={120} />
+        <Skeleton variant="rectangular" width="100%" height={6} />
+        <Skeleton variant="rectangular" width="100%" height={200} />
+        <Skeleton variant="rectangular" width="100%" height={200} />
       </div>
     );
   }
 
+  // Error
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-16 text-center text-[var(--muted)]">
-        <p>{error}</p>
-        <button onClick={fetchQuestions} className="mt-4 text-[var(--accent)] hover:underline">重试</button>
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <EmptyState
+          icon={<Headphones className="w-12 h-12" />}
+          title="加载失败"
+          description={error}
+          action={<Button variant="gold" onClick={fetchQuestions}>重试</Button>}
+        />
       </div>
     );
   }
 
+  // Empty
+  if (questions.length === 0) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-16">
+        <EmptyState
+          icon={<Headphones className="w-12 h-12" />}
+          title="暂无听力练习"
+          action={<Link href="/courses"><Button variant="gold">返回课程</Button></Link>}
+        />
+      </div>
+    );
+  }
+
+  // Completed
   if (completed) {
     const pct = questions.length > 0 ? Math.round((score / questions.length) * 100) : 0;
     return (
       <div className="max-w-2xl mx-auto px-4 py-16 text-center space-y-6 animate-fade-in-up">
-        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-emerald-500/20">
-          <CheckCircle2 className="w-10 h-10 text-emerald-400" />
+        <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[rgba(77,147,117,0.2)]">
+          <CheckCircle2 className="w-10 h-10 text-[var(--accent-secondary)]" />
         </div>
-        <h2 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>听力练习完成！</h2>
-        <div className="glass rounded-2xl p-6 max-w-xs mx-auto space-y-3">
-          <div className="flex justify-between">
-            <span className="text-[var(--muted)]">正确率</span>
-            <span className="font-bold text-emerald-400">{pct}%</span>
+        <h2 className="text-2xl font-bold text-[var(--foreground)] font-[var(--font-heading)]">听力练习完成！</h2>
+        <Card variant="glass" padding="md" className="max-w-xs mx-auto">
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-[var(--muted)]">正确率</span>
+              <span className="font-bold text-[var(--accent-secondary)]">{pct}%</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-[var(--muted)]">得分</span>
+              <span className="font-bold text-[var(--accent)]">+{score * 10} XP</span>
+            </div>
           </div>
-          <div className="flex justify-between">
-            <span className="text-[var(--muted)]">得分</span>
-            <span className="font-bold text-amber-400">+{score * 10} XP</span>
-          </div>
-        </div>
-        <Link
-          href="/courses"
-          className="inline-block px-8 py-3 rounded-xl font-semibold text-white
-                     bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                     hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-        >
-          返回课程
+        </Card>
+        <Link href="/courses">
+          <Button variant="primary">返回课程</Button>
         </Link>
       </div>
     );
@@ -202,10 +209,10 @@ export default function ListeningLearnPage() {
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    <div className="max-w-2xl mx-auto px-4 py-8 space-y-6 page-enter">
       {/* Top bar */}
       <div className="flex items-center justify-between">
-        <Link href="/courses" className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)]">
+        <Link href="/courses" className="flex items-center gap-1.5 text-sm text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
           <ArrowLeft className="w-4 h-4" />
           返回
         </Link>
@@ -213,58 +220,75 @@ export default function ListeningLearnPage() {
       </div>
 
       {/* Progress bar */}
-      <div className="h-1.5 rounded-full bg-[var(--card-border)] overflow-hidden">
-        <div
-          className="h-full rounded-full bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)] transition-all duration-300"
-          style={{ width: `${((currentIndex + (submitted ? 1 : 0)) / questions.length) * 100}%` }}
-        />
-      </div>
+      <ProgressBar
+        value={currentIndex + (submitted ? 1 : 0)}
+        max={questions.length}
+        variant="default"
+      />
 
       {/* Audio player card */}
-      <div className="glass rounded-2xl p-6 space-y-4 animate-fade-in-up" key={question.id}>
-        {/* Hidden audio */}
+      <Card variant="glass" padding="lg" key={question.id} className="animate-fade-in-up">
         <audio
           ref={audioRef}
           src={question.audioUrl}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onEnded={handleEnded}
+          onTimeUpdate={() => audioRef.current && setCurrentTime(audioRef.current.currentTime)}
+          onLoadedMetadata={() => audioRef.current && setDuration(audioRef.current.duration)}
+          onEnded={() => setIsPlaying(false)}
           onError={() => { setAudioFailed(true); setIsPlaying(false); }}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         />
 
-        <div className="flex flex-col items-center gap-4">
-          <Headphones className="w-12 h-12" style={{ color: audioFailed ? 'var(--muted)' : 'var(--accent)' }} />
+        <div className="flex flex-col items-center gap-5">
+          <Headphones className={`w-12 h-12 ${audioFailed ? 'text-[var(--muted)]/50' : 'text-[var(--accent)]'}`} />
 
           {audioFailed ? (
             <div className="text-center space-y-2">
-              <p className="text-sm text-amber-400 font-medium">音频暂不可用</p>
+              <p className="text-sm text-[var(--accent)] font-semibold">音频暂不可用</p>
               <p className="text-xs text-[var(--muted)]">请阅读以下文字完成练习</p>
+              {question.transcript && (
+                <p className="text-sm text-[var(--foreground)] mt-2 italic">{question.transcript}</p>
+              )}
             </div>
           ) : (
             <>
-              {/* Audio progress */}
-              <div className="w-full h-2 rounded-full bg-[var(--card-border)] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--accent)] transition-all"
-                  style={{ width: `${progress}%` }}
-                />
+              {/* Waveform bars */}
+              <div className="flex items-center justify-center gap-1 h-12 w-full max-w-xs">
+                {Array.from({ length: 20 }).map((_, i) => {
+                  const isActive = (progress / 100) * 20 >= i;
+                  return (
+                    <div
+                      key={i}
+                      className={`w-1.5 rounded-full transition-all duration-150 ${
+                        isActive ? 'bg-[var(--accent)]' : 'bg-[var(--card-border)]'
+                      }`}
+                      style={{
+                        height: `${12 + Math.sin(i * 0.7) * 16 + Math.random() * 8}px`,
+                        opacity: isActive ? 1 : 0.4,
+                      }}
+                    />
+                  );
+                })}
               </div>
+
+              {/* Audio progress */}
+              <ProgressBar value={currentTime} max={duration || 100} className="w-full" />
 
               {/* Controls */}
               <div className="flex items-center gap-4">
                 <button
                   onClick={handleReplay}
-                  className="p-2 rounded-xl glass hover:bg-[var(--card-bg)] transition-colors"
+                  className="p-2.5 rounded-xl glass hover:bg-[var(--card-bg)] transition-colors"
+                  aria-label="重新播放"
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <RotateCcw className="w-5 h-5 text-[var(--muted)]" />
                 </button>
                 <button
                   onClick={handlePlayPause}
-                  className="w-14 h-14 rounded-full flex items-center justify-center text-white
-                             bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                             hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                  className="w-14 h-14 rounded-full flex items-center justify-center
+                             bg-gradient-to-r from-[var(--accent)] to-[#c49a3c] text-[#0b1121]
+                             hover:shadow-[0_4px_20px_rgba(212,168,83,0.35)] transition-all duration-200 hover:scale-105"
+                  aria-label={isPlaying ? '暂停' : '播放'}
                 >
                   {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
                 </button>
@@ -275,10 +299,9 @@ export default function ListeningLearnPage() {
                       onClick={() => setSpeed(s)}
                       className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all
                         ${speed === s
-                          ? 'text-white'
-                          : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                          ? 'bg-[var(--accent)] text-[#0b1121]'
+                          : 'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--accent-muted)]'
                         }`}
-                      style={speed === s ? { backgroundColor: 'var(--accent)' } : {}}
                     >
                       {s}x
                     </button>
@@ -288,87 +311,88 @@ export default function ListeningLearnPage() {
             </>
           )}
         </div>
-      </div>
+      </Card>
 
       {/* Question card */}
-      <div className="glass rounded-2xl p-6 space-y-4">
-        <h3 className="text-lg font-semibold text-center">{question.question}</h3>
+      <Card variant="glass" padding="lg">
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-[var(--foreground)] text-center">
+            {question.question}
+          </h3>
 
-        {question.options.length > 0 && (
-          <div className="space-y-2.5">
-            {question.options.map((opt) => {
-              let extraClass = 'hover:border-[var(--accent)]/50 hover:bg-[var(--card-bg)]';
-              if (submitted) {
-                if (opt === question.correctAnswer) {
-                  extraClass = 'border-emerald-500/50 bg-emerald-500/10';
-                } else if (selected === opt) {
-                  extraClass = 'border-red-500/50 bg-red-500/10 animate-shake';
+          {question.options.length > 0 && (
+            <div className="space-y-2.5">
+              {question.options.map((opt) => {
+                let extraClass = 'hover:border-[var(--accent)]/50 hover:bg-[var(--accent-muted)]';
+                if (submitted) {
+                  if (opt === question.correctAnswer) {
+                    extraClass = 'border-[rgba(77,147,117,0.5)] bg-[rgba(77,147,117,0.1)]';
+                  } else if (selected === opt) {
+                    extraClass = 'border-[rgba(196,85,77,0.5)] bg-[rgba(196,85,77,0.1)] animate-shake';
+                  } else {
+                    extraClass = 'opacity-60';
+                  }
                 }
-              }
-              return (
-                <button
-                  key={opt}
-                  onClick={() => !submitted && setSelected(opt)}
-                  disabled={submitted}
-                  className={`w-full p-4 rounded-xl border text-left font-medium transition-all duration-200
-                    ${selected === opt && !submitted ? 'border-[var(--accent)]/50 bg-[var(--accent)]/10' : 'border-[var(--card-border)]'}
-                    ${extraClass}
-                  `}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex-1">{opt}</span>
-                    {submitted && opt === question.correctAnswer && (
-                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
+                return (
+                  <button
+                    key={opt}
+                    onClick={() => !submitted && setSelected(opt)}
+                    disabled={submitted}
+                    className={`w-full p-4 rounded-xl border text-left font-medium transition-all duration-200
+                      ${selected === opt && !submitted ? 'border-[var(--accent)]/50 bg-[var(--accent-muted)]' : 'border-[var(--card-border)]'}
+                      ${extraClass}
+                    `}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="flex-1 text-[var(--foreground)]">{opt}</span>
+                      {submitted && opt === question.correctAnswer && (
+                        <CheckCircle2 className="w-5 h-5 text-[var(--accent-secondary)]" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-        {/* Submit button */}
-        {!submitted && (
-          <button
-            onClick={handleSubmit}
-            disabled={!selected}
-            className="w-full py-3 rounded-xl font-semibold text-white
-                       bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                       hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200
-                       disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-          >
-            提交答案
-          </button>
-        )}
-
-        {/* Feedback + Next */}
-        {submitted && (
-          <div className="space-y-3">
-            {isCorrect ? (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center font-medium">
-                正确！
-              </div>
-            ) : (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-center">
-                正确答案：{question.correctAnswer}
-              </div>
-            )}
-            {question.transcript && (
-              <div className="p-3 rounded-xl bg-[var(--card-bg)] text-sm text-[var(--muted)]">
-                原文：{question.transcript}
-              </div>
-            )}
-            <button
-              onClick={handleNext}
-              className="w-full py-3 rounded-xl font-semibold text-white
-                         bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                         hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+          {!submitted ? (
+            <Button
+              variant="primary"
+              fullWidth
+              size="lg"
+              disabled={!selected}
+              onClick={handleSubmit}
             >
-              {currentIndex < questions.length - 1 ? '下一题' : '查看结果'}
-            </button>
-          </div>
-        )}
-      </div>
+              提交答案
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              {isCorrect ? (
+                <div className="p-3 rounded-xl bg-[rgba(77,147,117,0.1)] border border-[rgba(77,147,117,0.2)] text-[var(--accent-secondary)] text-center font-medium">
+                  正确！
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl bg-[rgba(196,85,77,0.1)] border border-[rgba(196,85,77,0.2)] text-[var(--danger)] text-center">
+                  正确答案：{question.correctAnswer}
+                </div>
+              )}
+              {question.transcript && (
+                <div className="p-3 rounded-xl bg-[var(--card-bg)] text-sm text-[var(--muted)]">
+                  原文：{question.transcript}
+                </div>
+              )}
+              <Button
+                variant="primary"
+                fullWidth
+                size="lg"
+                onClick={handleNext}
+              >
+                {currentIndex < questions.length - 1 ? '下一题' : '查看结果'}
+              </Button>
+            </div>
+          )}
+        </div>
+      </Card>
     </div>
   );
 }

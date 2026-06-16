@@ -1,6 +1,12 @@
 import { getDb } from '@/lib/db';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Edit3, Headphones, Mic, Lock, CheckCircle2, Play } from 'lucide-react';
+import { ArrowLeft, BookOpen, Edit3, Headphones, Mic, Lock, CheckCircle2, Play, ChevronDown } from 'lucide-react';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import Badge from '@/components/ui/Badge';
+import LevelBadge from '@/components/ui/LevelBadge';
+import ProgressBar from '@/components/ui/ProgressBar';
+import EmptyState from '@/components/ui/EmptyState';
 
 interface CourseRow {
   id: number;
@@ -44,6 +50,95 @@ const TYPE_LABELS: Record<string, string> = {
   speaking: '口语练习',
 };
 
+const TYPE_BADGES: Record<string, 'gold' | 'green' | 'red' | 'blue' | 'muted'> = {
+  word: 'gold',
+  grammar: 'green',
+  listening: 'blue',
+  speaking: 'red',
+};
+
+function UnitAccordion({
+  unit,
+  index,
+  lessons,
+  open,
+}: {
+  unit: UnitRow;
+  index: number;
+  lessons: LessonRow[];
+  open: boolean;
+}) {
+  return (
+    <details className="group" open={open}>
+      <summary className="card p-5 cursor-pointer list-none flex items-center gap-4 select-none marker:hidden">
+        <div className="w-10 h-10 rounded-xl bg-[rgba(212,168,83,0.15)] flex items-center justify-center text-[var(--accent)] font-bold text-lg font-[var(--font-mono)] shrink-0">
+          {index + 1}
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-[var(--foreground)]">{unit.title}</h3>
+          {unit.description && (
+            <p className="text-sm text-[var(--muted)] line-clamp-1">{unit.description}</p>
+          )}
+        </div>
+        <span className="text-xs text-[var(--muted)] font-medium">{lessons.length} 课</span>
+        <ChevronDown className="w-5 h-5 text-[var(--muted)] transition-transform duration-200 group-open:rotate-180" />
+      </summary>
+
+      <div className="px-5 pb-4 space-y-1.5">
+        {lessons.map((lesson, li) => {
+          const IconComp = TYPE_ICONS[lesson.type] || BookOpen;
+          const isLocked = li > 0;
+          const isCompleted = false;
+          const badgeVariant = TYPE_BADGES[lesson.type] || 'muted';
+
+          return (
+            <Link
+              key={lesson.id}
+              href={isLocked ? '#' : `/learn/${lesson.type}/${lesson.id}`}
+              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200
+                ${isLocked
+                  ? 'opacity-50 cursor-not-allowed'
+                  : 'hover:bg-[var(--accent-muted)]'
+                }`}
+              onClick={(e) => { if (isLocked) e.preventDefault(); }}
+            >
+              <div
+                className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0
+                  ${isCompleted
+                    ? 'bg-[rgba(77,147,117,0.2)]'
+                    : isLocked
+                    ? 'bg-[rgba(107,123,141,0.08)]'
+                    : 'bg-[var(--accent-muted)]'
+                  }`}
+              >
+                {isCompleted ? (
+                  <CheckCircle2 className="w-4 h-4 text-[var(--accent-secondary)]" />
+                ) : isLocked ? (
+                  <Lock className="w-4 h-4 text-[var(--muted)]" />
+                ) : (
+                  <IconComp className="w-4 h-4 text-[var(--accent)]" />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={`text-sm font-medium ${isLocked ? 'text-[var(--muted)]' : 'text-[var(--foreground)]'}`}>
+                  {lesson.title}
+                </p>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <Badge variant={badgeVariant} size="sm">{TYPE_LABELS[lesson.type]}</Badge>
+                  <span className="text-xs text-[var(--muted)]">{lesson.duration_minutes} 分钟</span>
+                </div>
+              </div>
+              {isCompleted && (
+                <span className="text-xs text-[var(--accent-secondary)] font-semibold shrink-0">已完成</span>
+              )}
+            </Link>
+          );
+        })}
+      </div>
+    </details>
+  );
+}
+
 export default async function CourseDetailPage({
   params,
 }: {
@@ -61,11 +156,16 @@ export default async function CourseDetailPage({
 
   if (!course) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center text-[var(--muted)]">
-        <p className="text-lg">课程未找到</p>
-        <Link href="/courses" className="text-[var(--accent)] hover:underline mt-2 inline-block">
-          返回课程列表
-        </Link>
+      <div className="max-w-4xl mx-auto px-4 py-16">
+        <EmptyState
+          icon={<BookOpen className="w-12 h-12" />}
+          title="课程未找到"
+          action={
+            <Link href="/courses">
+              <Button variant="gold">返回课程列表</Button>
+            </Link>
+          }
+        />
       </div>
     );
   }
@@ -90,9 +190,10 @@ export default async function CourseDetailPage({
   }
 
   const totalLessons = Array.from(lessonMap.values()).reduce((sum, l) => sum + l.length, 0);
+  const firstLesson = units[0] && lessonMap.get(units[0].id)?.[0];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-4xl mx-auto px-4 py-8 space-y-8 page-enter">
       {/* Back */}
       <Link
         href="/courses"
@@ -103,134 +204,53 @@ export default async function CourseDetailPage({
       </Link>
 
       {/* Course header */}
-      <div className="animate-fade-in-up space-y-4">
+      <div className="animate-fade-in-up space-y-5">
         <div className="flex items-center gap-3 flex-wrap">
           <span className="text-3xl">{course.language_flag}</span>
-          <span className="text-xs px-2.5 py-1 rounded-full glass font-medium">{course.level}</span>
+          <LevelBadge level={course.level} />
           <span className="text-sm text-[var(--muted)]">{course.language_name}</span>
         </div>
-        <h1
-          className="text-3xl md:text-4xl font-bold"
-          style={{ fontFamily: 'var(--font-heading)' }}
-        >
+        <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] font-[var(--font-heading)]">
           {course.title}
         </h1>
-        <p className="text-[var(--muted)] max-w-2xl">{course.description}</p>
+        <p className="text-[var(--muted)] max-w-2xl leading-relaxed">{course.description}</p>
 
-        {/* Progress bar (overall) */}
-        <div className="space-y-1.5 pt-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[var(--muted)]">课程进度</span>
-            <span className="font-medium">0 / {totalLessons} 课</span>
-          </div>
-          <div className="h-2 rounded-full bg-[var(--card-border)] overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all"
-              style={{ backgroundColor: 'var(--accent)', width: '0%' }}
-            />
-          </div>
-        </div>
+        {/* Progress bar */}
+        <Card variant="glass" padding="md">
+          <ProgressBar value={0} max={totalLessons} showLabel variant="default" />
+        </Card>
 
         {/* CTA */}
         <Link
-          href={`/learn/word/${units[0] && lessonMap.get(units[0].id)?.[0]?.id || 1}`}
-          className="inline-flex items-center gap-2 px-8 py-3 rounded-xl font-semibold text-white
-                     bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                     hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+          href={firstLesson ? `/learn/${firstLesson.type}/${firstLesson.id}` : `/learn/word/${1}`}
         >
-          <Play className="w-5 h-5" />
-          {totalLessons > 0 ? '开始学习' : '即将上线'}
+          <Button variant="primary" size="lg" icon={<Play className="w-5 h-5" />}>
+            {totalLessons > 0 ? '继续学习' : '即将上线'}
+          </Button>
         </Link>
       </div>
 
       {/* Units accordion */}
-      <div className="space-y-4 stagger-children">
-        {units.map((unit, ui) => {
-          const lessons = lessonMap.get(unit.id) || [];
-          return (
-            <details
-              key={unit.id}
-              className="glass rounded-2xl group"
-              open={ui === 0}
-            >
-              <summary className="px-6 py-4 cursor-pointer list-none flex items-center gap-4 select-none">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-lg"
-                  style={{ backgroundColor: 'var(--accent)' }}
-                >
-                  {ui + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-semibold">{unit.title}</h3>
-                  {unit.description && (
-                    <p className="text-sm text-[var(--muted)] line-clamp-1">{unit.description}</p>
-                  )}
-                </div>
-                <span className="text-sm text-[var(--muted)]">{lessons.length} 课</span>
-                <span className="text-[var(--muted)] group-open:rotate-180 transition-transform ml-1">
-                  ▼
-                </span>
-              </summary>
-
-              <div className="px-6 pb-4 space-y-2">
-                {lessons.map((lesson, li) => {
-                  const IconComp = TYPE_ICONS[lesson.type] || BookOpen;
-                  const isLocked = li > 0; // First lesson unlocked
-                  const isCompleted = false;
-                  return (
-                    <Link
-                      key={lesson.id}
-                      href={isLocked ? '#' : `/learn/${lesson.type}/${lesson.id}`}
-                      className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all
-                        ${isLocked
-                          ? 'opacity-50 cursor-not-allowed'
-                          : isCompleted
-                          ? 'hover:bg-emerald-500/10'
-                          : 'hover:bg-[var(--card-bg)] hover:-translate-x-0.5'
-                        }`}
-                    >
-                      <div
-                        className={`w-9 h-9 rounded-lg flex items-center justify-center
-                          ${isCompleted
-                            ? 'bg-emerald-500/20'
-                            : isLocked
-                            ? 'bg-gray-500/10'
-                            : ''
-                          }`}
-                        style={!isCompleted && !isLocked ? { backgroundColor: 'color-mix(in srgb, var(--accent) 15%, transparent)' } : {}}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                        ) : isLocked ? (
-                          <Lock className="w-4 h-4 text-[var(--muted)]" />
-                        ) : (
-                          <IconComp className="w-4 h-4 text-[var(--accent)]" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-medium ${isLocked ? 'text-[var(--muted)]' : ''}`}>
-                          {lesson.title}
-                        </p>
-                        <p className="text-xs text-[var(--muted)]">
-                          {TYPE_LABELS[lesson.type]} · {lesson.duration_minutes} 分钟
-                        </p>
-                      </div>
-                      {isCompleted && (
-                        <span className="text-xs text-emerald-400 font-medium">已完成</span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            </details>
-          );
-        })}
-
-        {units.length === 0 && (
-          <div className="text-center py-12 text-[var(--muted)]">
-            <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
-            <p>暂无课程内容</p>
-          </div>
+      <div className="space-y-3 stagger-children">
+        {units.length > 0 ? (
+          units.map((unit, ui) => {
+            const lessons = lessonMap.get(unit.id) || [];
+            return (
+              <UnitAccordion
+                key={unit.id}
+                unit={unit}
+                index={ui}
+                lessons={lessons}
+                open={ui === 0}
+              />
+            );
+          })
+        ) : (
+          <EmptyState
+            icon={<BookOpen className="w-12 h-12" />}
+            title="暂无课程内容"
+            description="课程内容正在准备中，敬请期待"
+          />
         )}
       </div>
     </div>

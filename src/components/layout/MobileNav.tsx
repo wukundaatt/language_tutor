@@ -16,9 +16,11 @@ export default function MobileNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16
-                    glass border-t border-[var(--card-border)]
-                    flex items-center justify-around px-2">
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 z-40 h-16
+                 glass-strong border-t border-[var(--card-border)]
+                 flex items-center justify-around px-1 pb-safe"
+    >
       {navLinks.map((link) => {
         const isActive = pathname === link.href;
         const Icon = link.icon;
@@ -26,17 +28,22 @@ export default function MobileNav() {
           <Link
             key={link.href}
             href={link.href}
-            className={`flex flex-col items-center gap-0.5 px-1 py-1.5 rounded-lg transition-all min-w-0
-              ${isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}`}
+            className={`
+              relative flex flex-col items-center justify-center gap-0.5
+              min-w-0 flex-1 py-1.5 rounded-lg
+              transition-all duration-200 ease-out
+              ${isActive ? 'text-[var(--accent)]' : 'text-[var(--muted)]'}
+              active:scale-95
+            `}
           >
-            <Icon className="w-5 h-5" />
-            <span className="text-[10px] font-medium leading-none">{link.label}</span>
+            {/* Active indicator — thin gold line on top */}
             {isActive && (
-              <span
-                className="absolute -top-0.5 w-8 h-0.5 rounded-full"
-                style={{ backgroundColor: 'var(--accent)', marginTop: -2 }}
-              />
+              <span className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-0.5 rounded-full bg-[var(--accent)]" />
             )}
+            <Icon className={`w-[1.15rem] h-[1.15rem] shrink-0 transition-colors duration-200 ${isActive ? 'drop-shadow-[0_0_4px_rgba(212,168,83,0.3)]' : ''}`} />
+            <span className="text-[0.65rem] font-medium leading-none tracking-wide">
+              {link.label}
+            </span>
           </Link>
         );
       })}

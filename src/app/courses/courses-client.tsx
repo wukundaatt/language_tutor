@@ -2,8 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, BookOpen, Filter } from 'lucide-react';
+import { Search, BookOpen, Filter, Grid3X3 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
+import LevelBadge from '@/components/ui/LevelBadge';
+import EmptyState from '@/components/ui/EmptyState';
+import ProgressBar from '@/components/ui/ProgressBar';
 
 interface CourseRow {
   id: number;
@@ -47,28 +52,25 @@ export default function CoursesClient({
   }, [courses, activeLang, activeLevel, search]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 page-enter">
       {/* Header */}
       <div className="space-y-2 animate-fade-in-up">
-        <h1
-          className="text-3xl md:text-4xl font-bold"
-          style={{ fontFamily: 'var(--font-heading)' }}
-        >
+        <h1 className="text-3xl md:text-4xl font-bold text-[var(--foreground)] font-[var(--font-heading)]">
           课程列表
         </h1>
         <p className="text-[var(--muted)]">选择适合你的课程，开始学习之旅</p>
       </div>
 
       {/* Filters */}
-      <div className="space-y-4 animate-fade-in-up">
+      <div className="space-y-5 animate-fade-in-up">
         {/* Language tabs */}
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => setActiveLang('all')}
-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5
+            className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
               ${activeLang === 'all'
-                ? 'text-white bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)] shadow-md'
-                : 'glass hover:shadow-sm'
+                ? 'bg-gradient-to-r from-[var(--accent)] to-[#c49a3c] text-[#0b1121] shadow-[0_4px_16px_rgba(212,168,83,0.25)]'
+                : 'glass text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--card-bg)]'
               }`}
           >
             🌐 全部
@@ -77,10 +79,10 @@ export default function CoursesClient({
             <button
               key={lang.code}
               onClick={() => setActiveLang(lang.code)}
-              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 hover:-translate-y-0.5
+              className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200
                 ${activeLang === lang.code
-                  ? 'text-white bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)] shadow-md'
-                  : 'glass hover:shadow-sm'
+                  ? 'bg-gradient-to-r from-[var(--accent)] to-[#c49a3c] text-[#0b1121] shadow-[0_4px_16px_rgba(212,168,83,0.25)]'
+                  : 'glass text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--card-bg)]'
                 }`}
             >
               {lang.name}
@@ -89,28 +91,27 @@ export default function CoursesClient({
         </div>
 
         {/* Level filter + search */}
-        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-          <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-[var(--muted)]" />
+        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+          <div className="flex items-center gap-2.5">
+            <Filter className="w-4 h-4 text-[var(--muted)] shrink-0" />
             <div className="flex gap-1.5 flex-wrap">
               {LEVELS.map((lvl) => (
                 <button
                   key={lvl}
                   onClick={() => setActiveLevel(lvl)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold uppercase tracking-wider transition-all duration-200
                     ${activeLevel === lvl
-                      ? 'text-white'
-                      : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                      ? 'bg-[var(--accent)] text-[#0b1121] shadow-[0_2px_8px_rgba(212,168,83,0.2)]'
+                      : 'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--accent-muted)]'
                     }`}
-                  style={activeLevel === lvl ? { backgroundColor: 'var(--accent)' } : {}}
                 >
-                  {lvl === 'All' ? '全部等级' : lvl}
+                  {lvl === 'All' ? '全部' : lvl}
                 </button>
               ))}
             </div>
           </div>
           <div className="relative sm:ml-auto w-full sm:w-64">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
             <input
               type="text"
               value={search}
@@ -125,47 +126,47 @@ export default function CoursesClient({
       </div>
 
       {/* Course grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
-        {filtered.map((course) => (
-          <Link
-            key={course.id}
-            href={`/courses/${course.id}`}
-            className="glass rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-200 group"
-          >
-            <div
-              className="h-2"
-              style={{ backgroundColor: course.cover_color }}
-            />
-            <div className="p-5 space-y-3">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{course.language_flag}</span>
-                <span className="text-xs px-2 py-0.5 rounded-full glass">{course.level}</span>
-                <span className="text-xs text-[var(--muted)] ml-auto flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" />
-                  {course.lesson_count} 课
-                </span>
-              </div>
-              <h3 className="font-semibold group-hover:text-[var(--accent)] transition-colors line-clamp-1">
-                {course.title}
-              </h3>
-              <p className="text-sm text-[var(--muted)] line-clamp-2">{course.description}</p>
-              {isAuthenticated && (
-                <div className="pt-1">
-                  <div className="h-1.5 rounded-full bg-[var(--card-border)] overflow-hidden">
-                    <div className="h-full rounded-full bg-[var(--accent)] w-[0%]" />
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 stagger-children">
+          {filtered.map((course) => (
+            <Link key={course.id} href={`/courses/${course.id}`}>
+              <Card variant="glass" hover padding="none" className="overflow-hidden h-full">
+                {/* Cover color strip */}
+                <div className="h-1.5 w-full" style={{ backgroundColor: course.cover_color }} />
+                <div className="p-5 space-y-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-lg">{course.language_flag}</span>
+                    <LevelBadge level={course.level} />
+                    <span className="text-xs text-[var(--muted)] ml-auto flex items-center gap-1">
+                      <BookOpen className="w-3.5 h-3.5" />
+                      {course.lesson_count}
+                    </span>
                   </div>
+                  <h3 className="font-semibold text-[var(--foreground)] line-clamp-1 font-[var(--font-heading)]">
+                    {course.title}
+                  </h3>
+                  <p className="text-sm text-[var(--muted)] line-clamp-2 leading-relaxed">
+                    {course.description}
+                  </p>
+                  {isAuthenticated && (
+                    <ProgressBar value={0} max={course.lesson_count} className="pt-1" />
+                  )}
                 </div>
-              )}
-            </div>
-          </Link>
-        ))}
-      </div>
-
-      {filtered.length === 0 && (
-        <div className="text-center py-16 text-[var(--muted)]">
-          <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-40" />
-          <p>没找到匹配的课程</p>
+              </Card>
+            </Link>
+          ))}
         </div>
+      ) : (
+        <EmptyState
+          icon={<Grid3X3 className="w-12 h-12" />}
+          title="没找到匹配的课程"
+          description="尝试调整筛选条件或搜索关键词"
+          action={
+            <Button variant="ghost" onClick={() => { setActiveLang('all'); setActiveLevel('All'); setSearch(''); }}>
+              清除筛选
+            </Button>
+          }
+        />
       )}
     </div>
   );

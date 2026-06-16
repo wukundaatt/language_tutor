@@ -3,8 +3,10 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, Eye, EyeOff, Loader2, UserPlus } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
+import Card from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 
 function getPasswordStrength(pw: string): { label: string; color: string; width: string } {
   if (pw.length === 0) return { label: '', color: 'bg-gray-400', width: '0%' };
@@ -15,10 +17,10 @@ function getPasswordStrength(pw: string): { label: string; color: string; width:
   if (/[0-9]/.test(pw)) score++;
   if (/[^A-Za-z0-9]/.test(pw)) score++;
 
-  if (score <= 1) return { label: '弱', color: 'bg-red-500', width: '25%' };
-  if (score <= 2) return { label: '一般', color: 'bg-orange-500', width: '50%' };
-  if (score <= 3) return { label: '较强', color: 'bg-yellow-500', width: '75%' };
-  return { label: '强', color: 'bg-emerald-500', width: '100%' };
+  if (score <= 1) return { label: '弱', color: 'bg-[var(--danger)]', width: '25%' };
+  if (score <= 2) return { label: '一般', color: 'bg-amber-500', width: '50%' };
+  if (score <= 3) return { label: '较强', color: 'bg-[var(--accent)]', width: '75%' };
+  return { label: '强', color: 'bg-[var(--accent-secondary)]', width: '100%' };
 }
 
 export default function RegisterPage() {
@@ -66,146 +68,155 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[calc(100vh-3.5rem)] md:min-h-screen flex items-center justify-center px-4 py-12 bg-gradient-to-br from-[var(--background)] via-[var(--background)] to-[color-mix(in_srgb,var(--accent)_10%,var(--background))]">
-      <div className="w-full max-w-md">
-        <div className="glass rounded-2xl p-8 space-y-6 animate-fade-in-up">
-          {/* Logo */}
-          <div className="text-center space-y-2">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[var(--accent-secondary)] mb-2">
-              <span className="text-2xl font-bold text-white" style={{ fontFamily: 'var(--font-heading)' }}>
-                L
-              </span>
-            </div>
-            <h1 className="text-2xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>
-              创建账号
-            </h1>
-            <p className="text-sm text-[var(--muted)]">开始您的语言学习之旅</p>
-          </div>
+    <div className="min-h-[calc(100vh-3.5rem)] md:min-h-screen flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Background radial gradient */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full blur-[150px] opacity-15"
+             style={{ background: 'radial-gradient(circle, var(--accent) 0%, var(--accent-secondary) 40%, transparent 70%)' }} />
+      </div>
 
-          {error && (
-            <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-              {error}
-            </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[var(--muted)]">用户名</label>
-              <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="您的用户名"
-                  required
-                  minLength={2}
-                  className="w-full pl-10 pr-4 py-3 bg-[var(--background)] rounded-xl border border-[var(--card-border)]
-                             text-[var(--foreground)] placeholder:text-[var(--muted)]
-                             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all"
-                />
+      <div className="w-full max-w-md relative z-10">
+        <Card variant="glass" padding="lg" className="border-[rgba(212,168,83,0.2)] animate-fade-in-up">
+          <div className="space-y-6">
+            {/* Logo */}
+            <div className="text-center space-y-2">
+              <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--accent)] to-[#c49a3c] mb-2">
+                <span className="text-2xl font-bold text-[#0b1121] font-[var(--font-heading)]">L</span>
               </div>
+              <h1 className="text-2xl font-bold text-[var(--foreground)] font-[var(--font-heading)]">
+                创建账号
+              </h1>
+              <p className="text-sm text-[var(--muted)]">开始您的语言学习之旅</p>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[var(--muted)]">邮箱</label>
-              <div className="relative">
-                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  className="w-full pl-10 pr-4 py-3 bg-[var(--background)] rounded-xl border border-[var(--card-border)]
-                             text-[var(--foreground)] placeholder:text-[var(--muted)]
-                             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all"
-                />
+            {error && (
+              <div className="p-3 rounded-xl bg-[rgba(196,85,77,0.1)] border border-[rgba(196,85,77,0.2)] text-[var(--danger)] text-sm">
+                {error}
               </div>
-            </div>
+            )}
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[var(--muted)]">密码</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="至少 6 个字符"
-                  required
-                  minLength={6}
-                  className="w-full pl-10 pr-12 py-3 bg-[var(--background)] rounded-xl border border-[var(--card-border)]
-                             text-[var(--foreground)] placeholder:text-[var(--muted)]
-                             focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 transition-all"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)]"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              {/* Strength indicator */}
-              {password.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  <div className="h-1.5 rounded-full bg-[var(--card-border)] overflow-hidden">
-                    <div
-                      className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
-                      style={{ width: strength.width }}
-                    />
-                  </div>
-                  <p className="text-xs text-[var(--muted)]">密码强度：{strength.label}</p>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--muted)]">用户名</label>
+                <div className="relative">
+                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="您的用户名"
+                    required
+                    minLength={2}
+                    className="w-full pl-10 pr-4 py-3 bg-[var(--background)] rounded-xl border border-[var(--card-border)]
+                               text-[var(--foreground)] placeholder:text-[var(--muted)]
+                               focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 focus:border-[var(--accent)]/30 transition-all"
+                  />
                 </div>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-[var(--muted)]">确认密码</label>
-              <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
-                <input
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="再次输入密码"
-                  required
-                  className={`w-full pl-10 pr-4 py-3 bg-[var(--background)] rounded-xl border transition-all
-                             ${!passwordsMatch
-                               ? 'border-red-500/50 focus:ring-red-500/30'
-                               : 'border-[var(--card-border)] focus:ring-[var(--accent)]/50'
-                             }
-                             text-[var(--foreground)] placeholder:text-[var(--muted)]
-                             focus:outline-none focus:ring-2`}
-                />
               </div>
-              {!passwordsMatch && (
-                <p className="text-xs text-red-400">两次输入的密码不一致</p>
-              )}
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--muted)]">邮箱</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    required
+                    className="w-full pl-10 pr-4 py-3 bg-[var(--background)] rounded-xl border border-[var(--card-border)]
+                               text-[var(--foreground)] placeholder:text-[var(--muted)]
+                               focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 focus:border-[var(--accent)]/30 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--muted)]">密码</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="至少 6 个字符"
+                    required
+                    minLength={6}
+                    className="w-full pl-10 pr-12 py-3 bg-[var(--background)] rounded-xl border border-[var(--card-border)]
+                               text-[var(--foreground)] placeholder:text-[var(--muted)]
+                               focus:outline-none focus:ring-2 focus:ring-[var(--accent)]/50 focus:border-[var(--accent)]/30 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                {/* Strength indicator */}
+                {password.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    <div className="h-1.5 rounded-full bg-[var(--card-border)] overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-300 ${strength.color}`}
+                        style={{ width: strength.width }}
+                      />
+                    </div>
+                    <p className="text-xs text-[var(--muted)]">密码强度：{strength.label}</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-[var(--muted)]">确认密码</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]" />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="再次输入密码"
+                    required
+                    className={`w-full pl-10 pr-4 py-3 bg-[var(--background)] rounded-xl border transition-all
+                               ${!passwordsMatch
+                                 ? 'border-[var(--danger)]/50 focus:ring-[var(--danger)]/30'
+                                 : 'border-[var(--card-border)] focus:ring-[var(--accent)]/50 focus:border-[var(--accent)]/30'
+                               }
+                               text-[var(--foreground)] placeholder:text-[var(--muted)]
+                               focus:outline-none focus:ring-2`}
+                  />
+                </div>
+                {!passwordsMatch && (
+                  <p className="text-xs text-[var(--danger)]">两次输入的密码不一致</p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                size="lg"
+                loading={loading}
+                icon={<UserPlus className="w-5 h-5" />}
+                className="mt-2"
+              >
+                {loading ? '注册中...' : '创建账号'}
+              </Button>
+            </form>
+
+            <div className="ornament-divider">
+              <div className="divider-diamond" />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 rounded-xl font-semibold text-white
-                         bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                         hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200
-                         disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0
-                         flex items-center justify-center gap-2 mt-2"
-            >
-              {loading && <Loader2 className="w-5 h-5 animate-spin" />}
-              {loading ? '注册中...' : '创建账号'}
-            </button>
-          </form>
-
-          <p className="text-center text-sm text-[var(--muted)]">
-            已有账号？{' '}
-            <Link href="/login" className="text-[var(--accent)] font-medium hover:underline">
-              立即登录
-            </Link>
-          </p>
-        </div>
+            <p className="text-center text-sm text-[var(--muted)]">
+              已有账号？{' '}
+              <Link href="/login" className="text-[var(--accent)] font-semibold hover:underline">
+                立即登录
+              </Link>
+            </p>
+          </div>
+        </Card>
       </div>
     </div>
   );
