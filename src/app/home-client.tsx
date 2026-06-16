@@ -49,6 +49,8 @@ export default function HomeClient({
   const { user, isAuthenticated, loading: authLoading } = useAuthStore();
   const [stats, setStats] = useState<UserStats | null>(null);
   const [reviewData, setReviewData] = useState<ReviewReminder | null>(null);
+  const [particles, setParticles] = useState<{ left: string; top: string; delay: string; duration: string; color: string }[]>([]);
+  const [mounted, setMounted] = useState(false);
 
   const fetchStats = useCallback(async () => {
     if (!isAuthenticated) return;
@@ -72,6 +74,22 @@ export default function HomeClient({
   }, [isAuthenticated]);
 
   useEffect(() => {
+    setTimeout(() => setMounted(true), 0);
+    // Generate particles deterministically using index-based pseudorandom
+    const newParticles = Array.from({ length: 20 }).map((_, i) => {
+      const seed = i * 137.5;
+      return {
+        left: `${((seed * 17) % 100)}%`,
+        top: `${((seed * 31) % 100)}%`,
+        delay: `${(seed * 7) % 3}s`,
+        duration: `${3 + (seed * 3) % 4}s`,
+        color: i % 2 === 0 ? 'var(--accent)' : 'var(--accent-secondary)',
+      };
+    });
+    setParticles(newParticles);
+  }, []);
+
+  useEffect(() => {
     if (isAuthenticated) fetchStats();
   }, [isAuthenticated, fetchStats]);
 
@@ -84,17 +102,17 @@ export default function HomeClient({
       {/* Hero section */}
       <section className="relative min-h-[80vh] flex flex-col items-center justify-center px-4 pt-16 pb-24 text-center overflow-hidden">
         {/* CSS particles */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {Array.from({ length: 20 }).map((_, i) => (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" suppressHydrationWarning>
+          {particles.map((p, i) => (
             <div
               key={i}
               className="absolute w-1 h-1 rounded-full opacity-30"
               style={{
-                backgroundColor: i % 2 === 0 ? 'var(--accent)' : 'var(--accent-secondary)',
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animation: `float-particle ${3 + Math.random() * 4}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 3}s`,
+                backgroundColor: p.color,
+                left: p.left,
+                top: p.top,
+                animation: `float-particle ${p.duration} ease-in-out infinite`,
+                animationDelay: p.delay,
               }}
             />
           ))}

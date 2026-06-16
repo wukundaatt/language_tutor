@@ -5,9 +5,9 @@ export async function GET() {
   try {
     const user = await getAuthUser();
     if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+      return NextResponse.json({ authenticated: false, user: null });
     }
-    return NextResponse.json(user);
+    return NextResponse.json({ authenticated: true, user });
   } catch (error) {
     console.error('Me error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

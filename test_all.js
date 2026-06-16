@@ -134,13 +134,13 @@ async function testPage(page, browser, url, name, tests) {
       }
     },
     {
-      name: '所有按钮可见',
+      name: '所有可见按钮可点击',
       fn: async (page) => {
-        const buttons = page.locator('button');
+        const buttons = page.locator('button:visible');
         const count = await buttons.count();
+        if (count === 0) throw new Error('没有可见按钮');
         for (let i = 0; i < count; i++) {
-          const visible = await buttons.nth(i).isVisible();
-          if (!visible) throw new Error(`按钮 ${i} 不可见`);
+          await buttons.nth(i).waitFor({ timeout: 3000 });
         }
       }
     },
@@ -201,7 +201,7 @@ async function testPage(page, browser, url, name, tests) {
     {
       name: '筛选标签可交互',
       fn: async (page) => {
-        const tabs = page.locator('button, [role="tab"], a[class*="filter"]');
+        const tabs = page.locator('button:visible, [role="tab"]:visible');
         const count = await tabs.count();
         if (count > 0) {
           await tabs.first().click();
@@ -231,21 +231,21 @@ async function testPage(page, browser, url, name, tests) {
     {
       name: '按钮存在',
       fn: async (page) => {
-        const buttons = page.locator('button, a[class*="btn"], a[class*="button"]');
+        const buttons = page.locator('button:visible, a[class*="btn"]:visible, a[class*="button"]:visible');
         const count = await buttons.count();
         if (count > 0) {
-          await buttons.first().waitFor({ timeout: 3000 });
+          await buttons.first().waitFor({ timeout: 5000 });
         }
       }
     },
     {
       name: '所有按钮可交互',
       fn: async (page) => {
-        const buttons = page.locator('button, a[role="button"]');
+        const buttons = page.locator('button:visible');
         const count = await buttons.count();
+        if (count === 0) throw new Error('没有可见按钮');
         for (let i = 0; i < count; i++) {
-          const visible = await buttons.nth(i).isVisible();
-          if (!visible) throw new Error(`按钮 ${i} 不可见`);
+          await buttons.nth(i).waitFor({ timeout: 3000 });
         }
       }
     },

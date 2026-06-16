@@ -24,6 +24,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <button
             onClick={() => setSidebarOpen(true)}
             className="p-2 rounded-xl hover:bg-[var(--card-bg)] transition-colors"
+            aria-label="打开菜单"
           >
             <Menu className="w-5 h-5" />
           </button>

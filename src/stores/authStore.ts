@@ -57,6 +57,10 @@ export const useAuthStore = create<AuthState>()((set) => ({
         return;
       }
       const data = await res.json();
+      if (!data.authenticated) {
+        set({ user: null, isAuthenticated: false, loading: false });
+        return;
+      }
       const user = mapUser(data.user || data);
       set({ user, isAuthenticated: true, loading: false });
     } catch {

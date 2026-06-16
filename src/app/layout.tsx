@@ -29,7 +29,7 @@ export default function RootLayout({
   return (
     <html
       lang="zh-CN"
-      className={`${playfair.variable} ${sourceSans.variable} dark h-full antialiased`}
+      className={`${playfair.variable} ${sourceSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
@@ -39,11 +39,14 @@ export default function RootLayout({
               (function() {
                 try {
                   var theme = localStorage.getItem('lingualearn-theme');
-                  if (theme === '"light"' || theme === 'light') {
-                    document.documentElement.classList.remove('dark');
+                  if (theme === 'light' || theme === '"light"') {
                     document.documentElement.classList.add('light');
+                  } else {
+                    document.documentElement.classList.add('dark');
                   }
-                } catch(e) {}
+                } catch(e) {
+                  document.documentElement.classList.add('dark');
+                }
               })();
             `,
           }}

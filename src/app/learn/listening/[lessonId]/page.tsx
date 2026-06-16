@@ -59,6 +59,7 @@ export default function ListeningLearnPage() {
   const [speed, setSpeed] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [audioFailed, setAudioFailed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Answer state
@@ -228,54 +229,64 @@ export default function ListeningLearnPage() {
           onTimeUpdate={handleTimeUpdate}
           onLoadedMetadata={handleLoadedMetadata}
           onEnded={handleEnded}
+          onError={() => { setAudioFailed(true); setIsPlaying(false); }}
           onPlay={() => setIsPlaying(true)}
           onPause={() => setIsPlaying(false)}
         />
 
         <div className="flex flex-col items-center gap-4">
-          <Headphones className="w-12 h-12" style={{ color: 'var(--accent)' }} />
+          <Headphones className="w-12 h-12" style={{ color: audioFailed ? 'var(--muted)' : 'var(--accent)' }} />
 
-          {/* Audio progress */}
-          <div className="w-full h-2 rounded-full bg-[var(--card-border)] overflow-hidden">
-            <div
-              className="h-full rounded-full bg-[var(--accent)] transition-all"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-
-          {/* Controls */}
-          <div className="flex items-center gap-4">
-            <button
-              onClick={handleReplay}
-              className="p-2 rounded-xl glass hover:bg-[var(--card-bg)] transition-colors"
-            >
-              <RotateCcw className="w-5 h-5" />
-            </button>
-            <button
-              onClick={handlePlayPause}
-              className="w-14 h-14 rounded-full flex items-center justify-center text-white
-                         bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
-                         hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
-            >
-              {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
-            </button>
-            <div className="flex gap-1">
-              {SPEEDS.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSpeed(s)}
-                  className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all
-                    ${speed === s
-                      ? 'text-white'
-                      : 'text-[var(--muted)] hover:text-[var(--foreground)]'
-                    }`}
-                  style={speed === s ? { backgroundColor: 'var(--accent)' } : {}}
-                >
-                  {s}x
-                </button>
-              ))}
+          {audioFailed ? (
+            <div className="text-center space-y-2">
+              <p className="text-sm text-amber-400 font-medium">音频暂不可用</p>
+              <p className="text-xs text-[var(--muted)]">请阅读以下文字完成练习</p>
             </div>
-          </div>
+          ) : (
+            <>
+              {/* Audio progress */}
+              <div className="w-full h-2 rounded-full bg-[var(--card-border)] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--accent)] transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center gap-4">
+                <button
+                  onClick={handleReplay}
+                  className="p-2 rounded-xl glass hover:bg-[var(--card-bg)] transition-colors"
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={handlePlayPause}
+                  className="w-14 h-14 rounded-full flex items-center justify-center text-white
+                             bg-gradient-to-r from-[var(--accent)] to-[var(--accent-secondary)]
+                             hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  {isPlaying ? <Pause className="w-7 h-7" /> : <Play className="w-7 h-7 ml-0.5" />}
+                </button>
+                <div className="flex gap-1">
+                  {SPEEDS.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => setSpeed(s)}
+                      className={`px-2.5 py-1 text-xs rounded-lg font-medium transition-all
+                        ${speed === s
+                          ? 'text-white'
+                          : 'text-[var(--muted)] hover:text-[var(--foreground)]'
+                        }`}
+                      style={speed === s ? { backgroundColor: 'var(--accent)' } : {}}
+                    >
+                      {s}x
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
 
