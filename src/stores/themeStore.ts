@@ -18,6 +18,6 @@ export const useThemeStore = create<ThemeState>()(
       setTheme: (theme) => set({ theme }),
       toggleTheme: () => set({ theme: get().theme === 'dark' ? 'light' : 'dark' }),
     }),
-    { name: 'lingualearn-theme', skipHydration: true }
+    { name: 'lingualearn-theme' }
   )
 );

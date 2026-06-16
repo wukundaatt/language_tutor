@@ -5,21 +5,19 @@ import { useThemeStore } from '@/stores/themeStore';
 
 export default function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useThemeStore((s) => s.theme);
-  const [hydrated, setHydrated] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  // After mount, sync theme class to documentElement
   useEffect(() => {
-    useThemeStore.persist.rehydrate();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- zustand persist hydration pattern
-    setHydrated(true);
+    setMounted(true);
   }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     const root = document.documentElement;
     root.classList.remove('dark', 'light');
     root.classList.add(theme);
-  }, [theme]);
-
-  if (!hydrated) return null;
+  }, [theme, mounted]);
 
   return <>{children}</>;
 }
