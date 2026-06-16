@@ -1,0 +1,67 @@
+# LinguaLearn - Playwright 功能测试报告
+**测试时间**: 2026-06-16 03:53:17**测试总数**: 47 | **通过**: 31 | **失败**: 3 | **需检查**: 10**通过率**: 66.0%
+---
+## 详细测试结果
+- ✅ **Homepage - Title exists** — LinguaLearn - 多语种在线学习平台
+- ✅ **Homepage - Navigation present**
+- ✅ **Homepage - CTA buttons present**
+- ✅ **Homepage - Language/course links** — Found 25 links
+- ✅ **Homepage - CTA clickable** — Text: 课程
+- ✅ **Login - Form present**
+- ✅ **Login - Email input**
+- ✅ **Login - Password input**
+- ✅ **Login - Submit button**
+- ✅ **Login - Register link** — 立即注册
+- ✅ **Register - Form present**
+- ✅ **Register - Login link** — 登录 / 注册
+- ✅ **Register - Input fields found** — Count: 4
+- ✅ **Register - Submit & redirect** — http://localhost:3000/
+- ❌ **Login - Submit button not found**
+- ✅ **Courses - Course cards/links** — Found 15
+- ✅ **Courses - Page heading** — 课程列表
+- ✅ **Courses - Language filter works** — Clicked: 🌐 全部
+- ✅ **Course Detail - Navigation works** — Navigated to: http://localhost:3000/courses
+- ⚠️ **Course Detail - Units visible**
+- ❌ **Course Detail - Lesson links** — Found 0
+- ⚠️ **Word Lesson - No word lesson found**
+- ⚠️ **Grammar Lesson - No grammar lesson found**
+- ⚠️ **Listening Lesson - No listening lesson found**
+- ⚠️ **Speaking Lesson - No speaking lesson found**
+- ✅ **Daily Challenge - Content loaded** — ['This page couldn’t load']
+- ⚠️ **Daily Challenge - Action button**
+- ✅ **Progress - Charts/visuals** — Found True chart elements
+- ✅ **Progress - Stats visible**
+- ✅ **Community - Posts/content**
+- ⚠️ **Community - Tab navigation**
+- ⚠️ **Community - Leaderboard section**
+- ⚠️ **Profile - Avatar section**
+- ⚠️ **Profile - Settings section**
+- ✅ **Navigation - Sidebar links found** — Links: ['LinguaLearn', '首页', '课程', '每日挑战', '学习进度', '社区', 'TTester_1781581958Lv. 1', '首页', '课程', '挑战']
+- ✅ **Mobile - Navigation adapts**
+- ✅ **Mobile - No horizontal overflow** — Body: 390, Viewport: 390
+- ❌ **Console - Total errors** — Count: 2
+- ⚠️ **Console Error: [error] Cannot update a component (`%s`) while rendering a different component (`%s`). To locate the bad setState() call**
+- ⚠️ **Console Error: [error] Cannot update a component (`%s`) while rendering a different component (`%s`). To locate the bad setState() call**
+- ⚠️ **Console - Total warnings** — Count: 0
+- ✅ **Perf - Homepage load time** — 0.98s
+- ✅ **Perf - Courses load time** — 0.77s
+- ✅ **Perf - Progress load time** — 0.89s
+- ✅ **Perf - Community load time** — 0.68s
+- ✅ **Perf - Daily Challenge load time** — 0.74s
+- ✅ **Perf - Profile load time** — 0.70s
+
+---
+## 截屏文件
+- `/tmp/lingualearn_screenshots/01_homepage.png`
+- `/tmp/lingualearn_screenshots/02_login.png`
+- `/tmp/lingualearn_screenshots/03_register.png`
+- `/tmp/lingualearn_screenshots/04_register_filled.png`
+- `/tmp/lingualearn_screenshots/05_after_register.png`
+- `/tmp/lingualearn_screenshots/06_login_filled.png`
+- `/tmp/lingualearn_screenshots/08_courses.png`
+- `/tmp/lingualearn_screenshots/09_course_detail.png`
+- `/tmp/lingualearn_screenshots/14_daily_challenge.png`
+- `/tmp/lingualearn_screenshots/15_progress.png`
+- `/tmp/lingualearn_screenshots/16_community.png`
+- `/tmp/lingualearn_screenshots/17_profile.png`
+- `/tmp/lingualearn_screenshots/18_mobile_home.png`
