@@ -1,0 +1,147 @@
+{
+  "issues": [
+    {
+      "severity": "info",
+      "category": "content",
+      "page": "/learn/word/1",
+      "description": "内容较少，可能API未返回"
+    },
+    {
+      "severity": "warning",
+      "category": "form",
+      "page": "/register",
+      "description": "表单输入不足（只有0个）"
+    },
+    {
+      "severity": "info",
+      "category": "content",
+      "page": "/community",
+      "description": "社区内容为空（需要种子数据）"
+    }
+  ],
+  "pages": [
+    {
+      "url": "/",
+      "title": "首页",
+      "body_length": 2286,
+      "h1": "打开通往世界的\n语言之门",
+      "buttons": 8,
+      "inputs": 0,
+      "links": 41
+    },
+    {
+      "url": "/courses",
+      "title": "课程列表",
+      "body_length": 1948,
+      "h1": "课程列表",
+      "buttons": 16,
+      "inputs": 1,
+      "links": 32
+    },
+    {
+      "url": "/courses/1",
+      "title": "课程详情",
+      "body_length": 490,
+      "h1": "English Basics",
+      "buttons": 4,
+      "inputs": 0,
+      "links": 30
+    },
+    {
+      "url": "/learn/word/1",
+      "title": "单词学习",
+      "body_length": 134,
+      "h1": "",
+      "buttons": 8,
+      "inputs": 0,
+      "links": 13
+    },
+    {
+      "url": "/learn/grammar/2",
+      "title": "语法学习",
+      "body_length": 97,
+      "h1": "",
+      "buttons": 3,
+      "inputs": 0,
+      "links": 13
+    },
+    {
+      "url": "/login",
+      "title": "登录",
+      "body_length": 99,
+      "h1": "欢迎回来",
+      "buttons": 5,
+      "inputs": 3,
+      "links": 14
+    },
+    {
+      "url": "/register",
+      "title": "注册",
+      "body_length": 2340,
+      "h1": "打开通往世界的\n语言之门",
+      "buttons": 9,
+      "inputs": 0,
+      "links": 42
+    },
+    {
+      "url": "/community",
+      "title": "社区",
+      "body_length": 83,
+      "h1": "社区",
+      "buttons": 6,
+      "inputs": 0,
+      "links": 12
+    },
+    {
+      "url": "/profile",
+      "title": "个人中心",
+      "body_length": 198,
+      "h1": "个人中心",
+      "buttons": 5,
+      "inputs": 0,
+      "links": 22
+    },
+    {
+      "url": "/progress",
+      "title": "学习进度",
+      "body_length": 295,
+      "h1": "学习进度",
+      "buttons": 4,
+      "inputs": 0,
+      "links": 12
+    },
+    {
+      "url": "/daily-challenge",
+      "title": "每日挑战",
+      "body_length": 120,
+      "h1": "每日挑战",
+      "buttons": 7,
+      "inputs": 0,
+      "links": 12
+    },
+    {
+      "url": "/admin/login",
+      "title": "管理员登录",
+      "body_length": 258,
+      "h1": "管理员登录",
+      "buttons": 4,
+      "inputs": 2,
+      "links": 12
+    },
+    {
+      "url": "/admin",
+      "title": "管理后台",
+      "body_length": 258,
+      "h1": "管理员登录",
+      "buttons": 4,
+      "inputs": 2,
+      "links": 12
+    }
+  ],
+  "total_issues": 3,
+  "severity_breakdown": {
+    "critical": 0,
+    "warning": 1,
+    "info": 2
+  }
+}

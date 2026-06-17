@@ -1,0 +1,837 @@
+{
+  "started_at": "2026-06-17T11:49:43.348597",
+  "finished_at": "2026-06-17T11:50:45.575482",
+  "summary": {
+    "total_pages_tested": 20,
+    "total_pages_passed": 20,
+    "total_pages_failed": 0,
+    "total_issues": 22,
+    "critical_issues": 22
+  },
+  "pages": [
+    {
+      "url": "/",
+      "title": "首页",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 1,
+      "buttons_total": 0,
+      "inputs_tested": 0,
+      "links_clicked": 1,
+      "duration_ms": 6138,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_index.png"
+    },
+    {
+      "url": "/courses",
+      "title": "课程列表",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 7,
+      "buttons_total": 16,
+      "inputs_tested": 1,
+      "links_clicked": 0,
+      "duration_ms": 1679,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_courses.png"
+    },
+    {
+      "url": "/courses/1",
+      "title": "课程详情",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 3,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 2,
+      "duration_ms": 3298,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_courses_1.png"
+    },
+    {
+      "url": "/learn/word/1",
+      "title": "word课程",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 6,
+      "buttons_total": 8,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1939,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_learn_word_1.png"
+    },
+    {
+      "url": "/learn/grammar/1",
+      "title": "grammar课程",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 1,
+      "links_clicked": 0,
+      "duration_ms": 1873,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_learn_grammar_1.png"
+    },
+    {
+      "url": "/learn/listening/1",
+      "title": "listening课程",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 1,
+      "links_clicked": 0,
+      "duration_ms": 1993,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_learn_listening_1.png"
+    },
+    {
+      "url": "/learn/speaking/1",
+      "title": "speaking课程",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 1,
+      "links_clicked": 0,
+      "duration_ms": 1880,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_learn_speaking_1.png"
+    },
+    {
+      "url": "/login",
+      "title": "登录页",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 1,
+      "inputs_tested": 2,
+      "links_clicked": 0,
+      "duration_ms": 1356,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_login.png"
+    },
+    {
+      "url": "/register",
+      "title": "注册页",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 1,
+      "buttons_total": 5,
+      "inputs_tested": 4,
+      "links_clicked": 0,
+      "duration_ms": 1230,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_register.png"
+    },
+    {
+      "url": "/profile",
+      "title": "个人中心",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 3,
+      "buttons_total": 5,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1382,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_profile.png"
+    },
+    {
+      "url": "/progress",
+      "title": "学习进度",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 4654,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_progress.png"
+    },
+    {
+      "url": "/community",
+      "title": "社区",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 3,
+      "buttons_total": 6,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1546,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_community.png"
+    },
+    {
+      "url": "/daily-challenge",
+      "title": "每日挑战",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 3732,
+      "console_errors": [],
+      "issues": [],
+      "screenshot": "screenshots/ok_daily_challenge.png"
+    },
+    {
+      "url": "/admin/login",
+      "title": "管理员登录",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 1,
+      "buttons_total": 1,
+      "inputs_tested": 2,
+      "links_clicked": 0,
+      "duration_ms": 1715,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/login",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin_login.png"
+    },
+    {
+      "url": "/admin",
+      "title": "admin-/admin",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1599,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin.png"
+    },
+    {
+      "url": "/admin/users",
+      "title": "admin-/admin/users",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1670,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/users",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/users",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/users",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin_users.png"
+    },
+    {
+      "url": "/admin/courses",
+      "title": "admin-/admin/courses",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1447,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/login",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/courses",
+          "description": "Console error: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/courses",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/courses",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/courses",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin_courses.png"
+    },
+    {
+      "url": "/admin/languages",
+      "title": "admin-/admin/languages",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1470,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/languages",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/languages",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/languages",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin_languages.png"
+    },
+    {
+      "url": "/admin/badges",
+      "title": "admin-/admin/badges",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1475,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/login",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/badges",
+          "description": "Console error: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/badges",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/badges",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/badges",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin_badges.png"
+    },
+    {
+      "url": "/admin/community",
+      "title": "admin-/admin/community",
+      "status": "passed",
+      "http_status": 200,
+      "buttons_clicked": 2,
+      "buttons_total": 4,
+      "inputs_tested": 0,
+      "links_clicked": 0,
+      "duration_ms": 1476,
+      "console_errors": [
+        {
+          "text": "Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/login",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        },
+        {
+          "text": "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "location": {
+            "url": "http://localhost:3000/api/admin/me",
+            "line": 0,
+            "column": 0,
+            "lineNumber": 0,
+            "columnNumber": 0
+          }
+        }
+      ],
+      "issues": [
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/community",
+          "description": "Console error: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/community",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/community",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        },
+        {
+          "severity": "critical",
+          "category": "console-error",
+          "page": "/admin/community",
+          "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+          "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+        }
+      ],
+      "screenshot": "screenshots/ok_admin_community.png"
+    }
+  ],
+  "all_issues": [
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/login",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/users",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/users",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/users",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/courses",
+      "description": "Console error: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/courses",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/courses",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/courses",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/languages",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/languages",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/languages",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/badges",
+      "description": "Console error: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/badges",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/badges",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/badges",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/community",
+      "description": "Console error: Failed to load resource: the server responded with a status of 400 (Bad Request)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/community",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/community",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    },
+    {
+      "severity": "critical",
+      "category": "console-error",
+      "page": "/admin/community",
+      "description": "Console error: Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+      "suggestion": "Check JS bundle integrity, fix React errors, inspect network calls."
+    }
+  ]
+}
