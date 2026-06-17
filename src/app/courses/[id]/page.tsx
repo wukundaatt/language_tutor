@@ -1,7 +1,7 @@
 import { getDb } from '@/lib/db';
 import { getAuthUser } from '@/lib/auth';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Edit3, Headphones, Mic, Lock, CheckCircle2, Play, ChevronDown } from 'lucide-react';
+import { ArrowLeft, BookOpen, Edit3, Headphones, Mic, CheckCircle2, Play, ChevronDown } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -90,40 +90,30 @@ function UnitAccordion({
       <div className="px-5 pb-4 space-y-1.5">
         {lessons.map((lesson) => {
           const IconComp = TYPE_ICONS[lesson.type] || BookOpen;
-          const isLocked = false;
           const isCompleted = completedLessonIds.has(lesson.id);
           const badgeVariant = TYPE_BADGES[lesson.type] || 'muted';
 
           return (
             <Link
               key={lesson.id}
-              href={isLocked ? '#' : `/learn/${lesson.type}/${lesson.id}`}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200
-                ${isLocked
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-[var(--accent-muted)]'
-                }`}
-              onClick={(e) => { if (isLocked) e.preventDefault(); }}
+              href={`/learn/${lesson.type}/${lesson.id}`}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:bg-[var(--accent-muted)]"
             >
               <div
                 className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0
                   ${isCompleted
                     ? 'bg-[rgba(77,147,117,0.2)]'
-                    : isLocked
-                    ? 'bg-[rgba(107,123,141,0.08)]'
                     : 'bg-[var(--accent-muted)]'
                   }`}
               >
                 {isCompleted ? (
                   <CheckCircle2 className="w-4 h-4 text-[var(--accent-secondary)]" />
-                ) : isLocked ? (
-                  <Lock className="w-4 h-4 text-[var(--muted)]" />
                 ) : (
                   <IconComp className="w-4 h-4 text-[var(--accent)]" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${isLocked ? 'text-[var(--muted)]' : 'text-[var(--foreground)]'}`}>
+                <p className="text-sm font-medium text-[var(--foreground)]">
                   {lesson.title}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">

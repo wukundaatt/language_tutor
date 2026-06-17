@@ -15,10 +15,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, [fetchUser]);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--background)]">
+    <div className="flex h-screen bg-[var(--background)]">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden w-full">
         {/* Top bar — mobile only */}
         <header className="md:hidden flex items-center justify-between px-4 h-14 glass shrink-0 border-b border-[var(--card-border)]">
           <button
