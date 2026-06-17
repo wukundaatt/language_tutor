@@ -2302,9 +2302,32 @@ const speakingBanks: Record<string,Record<number,Record<number,SpeakingEntry[]>>
 };
 
 // ─── Seed Function ───────────────────────────────────────────────────────────
+function createDefaultAdmin(): void {
+  const db = getDb();
+  const existing = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+  if (existing) {
+    db.prepare('UPDATE users SET is_admin = 1 WHERE username = ?').run('admin');
+    return;
+  }
+  // 生成 "admin123" 的 bcrypt hash
+  const bcrypt = require('bcryptjs');
+  const defaultAdminHash = bcrypt.hashSync('admin123', 10);
+  try {
+    db.prepare(
+      'INSERT INTO users (username, email, password_hash, is_admin, level, xp, streak, target_language, daily_goal_minutes, theme) VALUES (?, ?, ?, 1, 1, 0, 0, ?, 30, ?)'
+    ).run('admin', 'admin@lingualearn.com', defaultAdminHash, 'english', 'dark');
+    console.log('Default admin user created: admin / admin123');
+  } catch {
+    // 忽略重复插入错误
+  }
+}
+
 export function seedDatabase(): void {
   initDb();
   const db = getDb();
+
+  // 确保 admin 账号始终存在
+  createDefaultAdmin();
 
   const badgeCount = db.prepare('SELECT COUNT(*) as count FROM badges').get() as { count: number };
   if (badgeCount.count > 0) {

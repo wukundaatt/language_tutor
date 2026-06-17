@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     const db = getDb();
 
     const user = db.prepare(
-      'SELECT id, username, email, password_hash, level, xp, streak, target_language, daily_goal_minutes, reminder_time, theme, avatar_url, created_at FROM users WHERE email = ?'
+      'SELECT id, username, email, password_hash, level, xp, streak, target_language, daily_goal_minutes, reminder_time, theme, avatar_url, is_admin, created_at FROM users WHERE email = ?'
     ).get(email) as Record<string, unknown> | undefined;
 
     if (!user) {

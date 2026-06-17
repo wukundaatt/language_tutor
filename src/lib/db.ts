@@ -28,8 +28,25 @@ export function initDb(): void {
       reminder_time TEXT,
       theme TEXT DEFAULT 'dark',
       avatar_url TEXT,
+      is_admin INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    -- 对旧数据库迁移添加 is_admin 字段
+    PRAGMA table_info(users);
+  `);
+
+  // 迁移: 如果 users 表没有 is_admin 列则添加
+  try {
+    const cols = database.prepare('PRAGMA table_info(users)').all() as { name: string }[];
+    if (!cols.find((c) => c.name === 'is_admin')) {
+      database.exec(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`);
+    }
+  } catch {
+    // 忽略迁移错误
+  }
+
+  database.exec(`
 
     CREATE TABLE IF NOT EXISTS languages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -35,7 +35,13 @@ export async function getAuthUser() {
   if (!payload) return null;
 
   const db = getDb();
-  return db.prepare('SELECT id, username, email, level, xp, streak, target_language, daily_goal_minutes, reminder_time, theme, avatar_url, created_at FROM users WHERE id = ?').get(payload.userId) as UserRow | undefined;
+  return db.prepare('SELECT id, username, email, level, xp, streak, target_language, daily_goal_minutes, reminder_time, theme, avatar_url, is_admin, created_at FROM users WHERE id = ?').get(payload.userId) as UserRow | undefined;
+}
+
+export async function getAdminUser() {
+  const user = await getAuthUser();
+  if (!user) return null;
+  return user.is_admin ? user : null;
 }
 
 export interface UserRow {
@@ -50,5 +56,6 @@ export interface UserRow {
   reminder_time: string | null;
   theme: string;
   avatar_url: string | null;
+  is_admin: number;
   created_at: string;
 }
