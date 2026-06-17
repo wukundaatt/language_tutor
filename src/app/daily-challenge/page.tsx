@@ -37,13 +37,14 @@ export default function DailyChallengePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [completed, setCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
   const [showFireworks, setShowFireworks] = useState(false);
 
   const fetchChallenge = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/daily-challenge', { credentials: 'include' });
       if (!res.ok) throw new Error('加载失败');
@@ -72,8 +73,8 @@ export default function DailyChallengePage() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) fetchChallenge();
-  }, [isAuthenticated, fetchChallenge]);
+    fetchChallenge();
+  }, [fetchChallenge]);
 
   useEffect(() => {
     if (completed || loading) return;
