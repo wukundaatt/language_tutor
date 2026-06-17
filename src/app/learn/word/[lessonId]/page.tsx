@@ -34,6 +34,8 @@ export default function WordLearnPage() {
   const [error, setError] = useState('');
   const [results, setResults] = useState<{ wordId: number; remembered: boolean }[]>([]);
   const [completed, setCompleted] = useState(false);
+  const [progressSubmitted, setProgressSubmitted] = useState(false);
+  const startTime = Date.now();
 
   const fetchWords = useCallback(async () => {
     try {
@@ -66,6 +68,29 @@ export default function WordLearnPage() {
     }
   }, [lessonId]);
 
+  const submitLessonProgress = useCallback(async (correctCount: number, total: number) => {
+    if (progressSubmitted) return;
+    const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+    const xpEarned = correctCount * 10 + Math.round(total * 2);
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          lessonId: parseInt(lessonId),
+          type: 'word',
+          score: correctCount * 10,
+          timeSpent,
+          xpEarned,
+        }),
+      });
+      setProgressSubmitted(true);
+    } catch {
+      // ignore
+    }
+  }, [lessonId, progressSubmitted, startTime]);
+
   const handleAnswer = (remembered: boolean) => {
     const word = words[currentIndex];
     const newResults = [...results, { wordId: word.id, remembered }];
@@ -78,6 +103,8 @@ export default function WordLearnPage() {
         setIsFlipped(false);
       }, 400);
     } else {
+      const rememberedCount = newResults.filter((r) => r.remembered).length;
+      submitLessonProgress(rememberedCount, words.length);
       setCompleted(true);
     }
   };

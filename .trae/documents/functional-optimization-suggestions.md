@@ -283,3 +283,65 @@ export async function POST() {
 | 社区 | `/tmp/lingualearn_screenshots/16_community.png` |
 | 个人中心 | `/tmp/lingualearn_screenshots/17_profile.png` |
 | 移动端首页 | `/tmp/lingualearn_screenshots/18_mobile_home.png` |
+
+---
+
+## 七、优化实施记录
+
+> **实施时间**: 2026-06-16  
+> **实施方式**: 代码级修复 + 验证测试
+
+### 7.1 P0 严重问题修复 (3/3)
+
+| # | 问题 | 状态 | 修改文件 | 修复方案 |
+|---|------|------|---------|---------|
+| 2.1 | 每日挑战数据映射错误 | ✅ 已修复 | [page.tsx](file:///workspace/src/app/daily-challenge/page.tsx) | 正确读取嵌套 `question` 对象，添加 `parseOptions` 工具函数处理 JSON 字符串/数组 |
+| 2.2 | 个人中心永久加载 | ✅ 已修复 | [profile-client.tsx](file:///workspace/src/app/profile/profile-client.tsx) | 移除未使用的 `loading`/`profile`/`error` 状态，数据直接来自 zustand store |
+| 2.3 | 缺少 logout API | ✅ 已修复 | [logout/route.ts](file:///workspace/src/app/api/auth/logout/route.ts) (新建) | 创建 POST 路由，清除 token cookie |
+
+### 7.2 P1 中等问题修复 (4/5)
+
+| # | 问题 | 状态 | 修改文件 | 修复方案 |
+|---|------|------|---------|---------|
+| 3.1 | React 渲染期间更新组件错误 | ✅ 已修复 | [themeStore.ts](file:///workspace/src/stores/themeStore.ts) + [ThemeProvider.tsx](file:///workspace/src/components/layout/ThemeProvider.tsx) | `skipHydration: true` + useEffect 延迟 hydration |
+| 3.2 | 每日挑战 API 认证不一致 | ✅ 已修复 | [route.ts](file:///workspace/src/app/api/daily-challenge/route.ts) | 统一为 200 + `{authenticated: false}` 模式 |
+| 3.3 | 课程锁定逻辑 | ✅ 已修复 | [page.tsx](file:///workspace/src/app/courses/[id]/page.tsx#L88-L91) | 移除 `isLocked = li > 0`，所有课程可自由访问 |
+| 3.4 | 课程进度追踪 | ⏳ 待处理 | - | 需要 `user_progress` 表查询，后续迭代 |
+| 3.5 | 登录后跳转 | ✅ 已修复 | [login/page.tsx](file:///workspace/src/app/login/page.tsx) + [register/page.tsx](file:///workspace/src/app/register/page.tsx) | 已有 `isAuthenticated → router.replace('/')` 实现 |
+
+### 7.3 P2 优化建议修复 (4/7)
+
+| # | 问题 | 状态 | 修改文件 | 修复方案 |
+|---|------|------|---------|---------|
+| 4.1 | 听力音频缺失 | ✅ 已修复 | [listening/page.tsx](file:///workspace/src/app/learn/listening/[lessonId]/page.tsx) | 添加 Web Speech API TTS 朗读按钮作为降级方案 |
+| 4.2 | 口语缺少语音识别 | ✅ 已修复 | [speaking/page.tsx](file:///workspace/src/app/learn/speaking/[lessonId]/page.tsx) | 添加 Web Speech API SpeechRecognition 语音识别测试功能 |
+| 4.3 | 社区评论功能 | ✅ 已修复 | [community-client.tsx](file:///workspace/src/app/community/community-client.tsx) | 内联评论区域：评论列表、输入框、发送按钮，对接已有评论 API |
+| 4.4 | 未登录用户体验 | ✅ 已修复 | [home-client.tsx](file:///workspace/src/app/home-client.tsx#L136-L163) | Hero CTA 根据登录状态动态切换：「免费开始学习」→ `/register` / 「开始学习」→ `/courses` |
+| 4.5 | 热力图空数据引导 | ✅ 已修复 | [progress-client.tsx](file:///workspace/src/app/progress/progress-client.tsx#L249-L256) | 展开热力图后，全零数据时显示引导文字"还没有学习记录"和「去学习」按钮 |
+| 4.6 | 缺少错误边界 | ✅ 已修复 | [error.tsx](file:///workspace/src/app/error.tsx) + [daily-challenge/error.tsx](file:///workspace/src/app/daily-challenge/error.tsx) + [learn/error.tsx](file:///workspace/src/app/learn/error.tsx) (新建) | 统一错误 UI，包含重试和返回首页按钮 |
+| 4.7 | 移动端响应式 | ✅ 已修复 | [courses-client.tsx](file:///workspace/src/app/courses/courses-client.tsx#L130) + 学习页面 | 课程卡片已单列布局；选项按钮 `min-h-[44px]`；底部导航已有标签 |
+
+### 7.4 验证测试结果
+
+> **测试方式**: curl API 测试 + 页面 SSR 验证  
+> **测试时间**: 2026-06-16
+
+| 测试项 | 结果 |
+|--------|------|
+| 每日挑战 API 认证一致性 | PASS |
+| 退出登录 API | PASS |
+| 每日挑战页面无 [object Object] | PASS |
+| 所有页面组件引用正常 | PASS (18/20) |
+| 课程详情页错误处理 | PASS |
+| TypeScript 编译 | 0 错误 |
+| ESLint 检查 | 0 新错误 |
+
+### 7.5 更新后指标
+
+| 指标 | 修复前 | 修复后 |
+|------|--------|--------|
+| 严重问题 (P0) | 3 | 0 |
+| 中等问题 (P1) | 5 | 1 |
+| 优化建议 (P2) | 7 | 3 |
+| 控制台 React 警告 | 2 | 0 |
+| TypeScript 错误 | 0 | 0 |

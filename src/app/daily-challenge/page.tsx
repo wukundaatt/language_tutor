@@ -21,6 +21,15 @@ interface ChallengeTask {
   correctAnswer: string;
 }
 
+function parseOptions(raw: unknown): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw as string[];
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return []; }
+  }
+  return [];
+}
+
 export default function DailyChallengePage() {
   const { isAuthenticated, loading: authLoading } = useAuthStore();
   const [tasks, setTasks] = useState<ChallengeTask[]>([]);
@@ -28,24 +37,33 @@ export default function DailyChallengePage() {
   const [selected, setSelected] = useState<string | null>(null);
   const [answered, setAnswered] = useState(false);
   const [score, setScore] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [completed, setCompleted] = useState(false);
   const [timeLeft, setTimeLeft] = useState(600);
   const [showFireworks, setShowFireworks] = useState(false);
 
   const fetchChallenge = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/daily-challenge', { credentials: 'include' });
       if (!res.ok) throw new Error('加载失败');
       const data = await res.json();
-      const list = (data.tasks || data || []).map((t: Record<string, unknown>) => ({
-        id: t.id as number,
-        type: t.type as string,
-        question: t.question as string,
-        options: typeof t.options === 'string' ? JSON.parse(t.options as string) : (t.options as string[]),
-        correctAnswer: t.correct_answer as string,
-      }));
+      if (data.authenticated === false) {
+        setError('请先登录');
+        setLoading(false);
+        return;
+      }
+      const list = (data.tasks || data || []).map((t: Record<string, unknown>) => {
+        const q = t.question as Record<string, unknown> | null;
+        return {
+          id: t.id as number,
+          type: t.type as string,
+          question: (q?.question as string) || (t.question as string),
+          options: parseOptions(q?.options_json ?? t.options),
+          correctAnswer: (q?.correct_answer as string) || (t.correct_answer as string),
+        };
+      });
       setTasks(list);
     } catch {
       setError('无法加载每日挑战');
@@ -55,8 +73,8 @@ export default function DailyChallengePage() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) fetchChallenge();
-  }, [isAuthenticated, fetchChallenge]);
+    fetchChallenge();
+  }, [fetchChallenge]);
 
   useEffect(() => {
     if (completed || loading) return;
@@ -296,7 +314,7 @@ export default function DailyChallengePage() {
                     key={opt}
                     onClick={() => handleAnswer(opt)}
                     disabled={answered}
-                    className={`w-full p-4 rounded-xl border text-left font-medium transition-all duration-200
+                    className={`w-full p-4 min-h-[44px] rounded-xl border text-left font-medium transition-all duration-200
                       ${bg} ${border}
                       ${!answered ? 'hover:border-[var(--accent)]/50 hover:bg-[var(--accent-muted)]' : ''}
                       ${answered && opt !== task.correctAnswer && opt !== selected ? 'opacity-50' : ''}

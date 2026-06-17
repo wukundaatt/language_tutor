@@ -1,6 +1,7 @@
 import { getDb } from '@/lib/db';
+import { getAuthUser } from '@/lib/auth';
 import Link from 'next/link';
-import { ArrowLeft, BookOpen, Edit3, Headphones, Mic, Lock, CheckCircle2, Play, ChevronDown } from 'lucide-react';
+import { ArrowLeft, BookOpen, Edit3, Headphones, Mic, CheckCircle2, Play, ChevronDown } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import Badge from '@/components/ui/Badge';
@@ -62,11 +63,13 @@ function UnitAccordion({
   index,
   lessons,
   open,
+  completedLessonIds,
 }: {
   unit: UnitRow;
   index: number;
   lessons: LessonRow[];
   open: boolean;
+  completedLessonIds: Set<number>;
 }) {
   return (
     <details className="group" open={open}>
@@ -85,42 +88,32 @@ function UnitAccordion({
       </summary>
 
       <div className="px-5 pb-4 space-y-1.5">
-        {lessons.map((lesson, li) => {
+        {lessons.map((lesson) => {
           const IconComp = TYPE_ICONS[lesson.type] || BookOpen;
-          const isLocked = li > 0;
-          const isCompleted = false;
+          const isCompleted = completedLessonIds.has(lesson.id);
           const badgeVariant = TYPE_BADGES[lesson.type] || 'muted';
 
           return (
             <Link
               key={lesson.id}
-              href={isLocked ? '#' : `/learn/${lesson.type}/${lesson.id}`}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200
-                ${isLocked
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-[var(--accent-muted)]'
-                }`}
-              onClick={(e) => { if (isLocked) e.preventDefault(); }}
+              href={`/learn/${lesson.type}/${lesson.id}`}
+              className="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 hover:bg-[var(--accent-muted)]"
             >
               <div
                 className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0
                   ${isCompleted
                     ? 'bg-[rgba(77,147,117,0.2)]'
-                    : isLocked
-                    ? 'bg-[rgba(107,123,141,0.08)]'
                     : 'bg-[var(--accent-muted)]'
                   }`}
               >
                 {isCompleted ? (
                   <CheckCircle2 className="w-4 h-4 text-[var(--accent-secondary)]" />
-                ) : isLocked ? (
-                  <Lock className="w-4 h-4 text-[var(--muted)]" />
                 ) : (
                   <IconComp className="w-4 h-4 text-[var(--accent)]" />
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-medium ${isLocked ? 'text-[var(--muted)]' : 'text-[var(--foreground)]'}`}>
+                <p className="text-sm font-medium text-[var(--foreground)]">
                   {lesson.title}
                 </p>
                 <div className="flex items-center gap-2 mt-0.5">
@@ -146,6 +139,7 @@ export default async function CourseDetailPage({
 }) {
   const { id } = await params;
   const db = getDb();
+  const user = await getAuthUser();
 
   const course = db.prepare(`
     SELECT c.*, l.flag_emoji as language_flag, l.name as language_name
@@ -190,6 +184,23 @@ export default async function CourseDetailPage({
   }
 
   const totalLessons = Array.from(lessonMap.values()).reduce((sum, l) => sum + l.length, 0);
+
+  const completedLessonIds = new Set<number>();
+  let completedCount = 0;
+  if (user && totalLessons > 0) {
+    const unitIds = units.map((u) => u.id);
+    const placeholders = unitIds.map(() => '?').join(',');
+    const completed = db.prepare(`
+      SELECT DISTINCT lesson_id FROM user_progress up
+      JOIN lessons ls ON up.lesson_id = ls.id
+      WHERE up.user_id = ? AND ls.unit_id IN (${placeholders})
+    `).all(user.id, ...unitIds) as Array<{ lesson_id: number }>;
+    for (const c of completed) {
+      completedLessonIds.add(c.lesson_id);
+    }
+    completedCount = completedLessonIds.size;
+  }
+
   const firstLesson = units[0] && lessonMap.get(units[0].id)?.[0];
 
   return (
@@ -217,7 +228,7 @@ export default async function CourseDetailPage({
 
         {/* Progress bar */}
         <Card variant="glass" padding="md">
-          <ProgressBar value={0} max={totalLessons} showLabel variant="default" />
+          <ProgressBar value={completedCount} max={totalLessons} showLabel variant="default" />
         </Card>
 
         {/* CTA */}
@@ -225,7 +236,7 @@ export default async function CourseDetailPage({
           href={firstLesson ? `/learn/${firstLesson.type}/${firstLesson.id}` : `/learn/word/${1}`}
         >
           <Button variant="primary" size="lg" icon={<Play className="w-5 h-5" />}>
-            {totalLessons > 0 ? '继续学习' : '即将上线'}
+            {totalLessons === 0 ? '即将上线' : completedCount === 0 ? '开始学习' : completedCount >= totalLessons ? '复习已完成' : '继续学习'}
           </Button>
         </Link>
       </div>
@@ -242,6 +253,7 @@ export default async function CourseDetailPage({
                 index={ui}
                 lessons={lessons}
                 open={ui === 0}
+                completedLessonIds={completedLessonIds}
               />
             );
           })

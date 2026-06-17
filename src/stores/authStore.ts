@@ -47,9 +47,10 @@ function mapUser(raw: Record<string, unknown>): User {
 export const useAuthStore = create<AuthState>()((set) => ({
   user: null,
   isAuthenticated: false,
-  loading: true,
+  loading: false,
 
   fetchUser: async () => {
+    set({ loading: true });
     try {
       const res = await fetch('/api/auth/me', { credentials: 'include' });
       if (!res.ok) {

@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import {
-  ArrowLeft, Play, Pause, RotateCcw, Loader2, CheckCircle2, Headphones
+  ArrowLeft, Play, Pause, RotateCcw, Loader2, CheckCircle2, Headphones, Volume2
 } from 'lucide-react';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -58,6 +58,8 @@ export default function ListeningLearnPage() {
   const [error, setError] = useState('');
   const [completed, setCompleted] = useState(false);
   const [score, setScore] = useState(0);
+  const [progressSubmitted, setProgressSubmitted] = useState(false);
+  const startTime = Date.now();
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -65,6 +67,16 @@ export default function ListeningLearnPage() {
   const [duration, setDuration] = useState(0);
   const [audioFailed, setAudioFailed] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const speakWithTTS = useCallback((text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'en-US';
+      utterance.rate = speed;
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [speed]);
 
   const [selected, setSelected] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -93,6 +105,29 @@ export default function ListeningLearnPage() {
       audioRef.current.playbackRate = speed;
     }
   }, [speed]);
+
+  const submitLessonProgress = useCallback(async (correctCount: number, total: number) => {
+    if (progressSubmitted) return;
+    const timeSpent = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+    const xpEarned = correctCount * 10 + Math.round(total * 2);
+    try {
+      await fetch('/api/progress', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({
+          lessonId: parseInt(lessonId),
+          type: 'listening',
+          score: correctCount * 10,
+          timeSpent,
+          xpEarned,
+        }),
+      });
+      setProgressSubmitted(true);
+    } catch {
+      // ignore
+    }
+  }, [lessonId, progressSubmitted, startTime]);
 
   const handlePlayPause = () => {
     if (!audioRef.current) return;
@@ -134,6 +169,7 @@ export default function ListeningLearnPage() {
         audioRef.current.currentTime = 0;
       }
     } else {
+      submitLessonProgress(score, questions.length);
       setCompleted(true);
     }
   };
@@ -249,6 +285,13 @@ export default function ListeningLearnPage() {
               {question.transcript && (
                 <p className="text-sm text-[var(--foreground)] mt-2 italic">{question.transcript}</p>
               )}
+              <button
+                onClick={() => speakWithTTS(question.transcript || question.question)}
+                className="inline-flex items-center gap-2 px-4 py-2 mt-2 rounded-xl glass hover:bg-[var(--card-bg)] transition-colors text-sm text-[var(--accent)]"
+              >
+                <Volume2 className="w-4 h-4" />
+                TTS 朗读
+              </button>
             </div>
           ) : (
             <>
@@ -338,7 +381,7 @@ export default function ListeningLearnPage() {
                     key={opt}
                     onClick={() => !submitted && setSelected(opt)}
                     disabled={submitted}
-                    className={`w-full p-4 rounded-xl border text-left font-medium transition-all duration-200
+                    className={`w-full p-4 min-h-[44px] rounded-xl border text-left font-medium transition-all duration-200
                       ${selected === opt && !submitted ? 'border-[var(--accent)]/50 bg-[var(--accent-muted)]' : 'border-[var(--card-border)]'}
                       ${extraClass}
                     `}
