@@ -8,13 +8,14 @@ export function getDb(): Database.Database {
     db = new Database(path.join(process.cwd(), 'lingualearn.db'));
     db.pragma('journal_mode = WAL');
     db.pragma('foreign_keys = ON');
+    initDb(db);
   }
   return db;
 }
 
-export function initDb(): void {
-  const database = getDb();
-  database.exec(`
+export function initDb(database?: Database.Database): void {
+  const d = database || getDb();
+  d.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT NOT NULL UNIQUE,
@@ -38,9 +39,9 @@ export function initDb(): void {
 
   // 迁移: 如果 users 表没有 is_admin 列则添加
   try {
-    const cols = database.prepare('PRAGMA table_info(users)').all() as { name: string }[];
+    const cols = d.prepare('PRAGMA table_info(users)').all() as { name: string }[];
     if (!cols.find((c) => c.name === 'is_admin')) {
-      database.exec(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`);
+      d.exec(`ALTER TABLE users ADD COLUMN is_admin INTEGER DEFAULT 0`);
     }
   } catch {
     // 忽略迁移错误
@@ -48,9 +49,9 @@ export function initDb(): void {
 
   // 迁移: 如果 audit_logs 表不存在则创建
   try {
-    const tables = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='audit_logs'").all() as { name: string }[];
+    const tables = d.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='audit_logs'").all() as { name: string }[];
     if (tables.length === 0) {
-      database.exec(`
+      d.exec(`
         CREATE TABLE audit_logs (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           admin_id INTEGER NOT NULL,
@@ -67,7 +68,7 @@ export function initDb(): void {
     // 忽略迁移错误
   }
 
-  database.exec(`
+  d.exec(`
 
     CREATE TABLE IF NOT EXISTS languages (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
