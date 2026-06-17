@@ -175,7 +175,7 @@ export default function HomeClient({
       </section>
 
       {/* ═══════════════ CONTENT ═══════════════ */}
-      <div id="content-start" className="max-w-7xl mx-auto px-4 pb-24 space-y-20">
+      <div id="content-start" className="max-w-7xl mx-auto px-4 pt-16 pb-24 space-y-20">
         {/* ── Language selector ── */}
         <section>
           <SectionHeader
