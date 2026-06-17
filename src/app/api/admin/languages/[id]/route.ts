@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, logAdminAction } from '@/lib/db';
 import { getAdminUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -56,6 +56,8 @@ export async function POST(request: NextRequest) {
       .prepare('INSERT INTO languages (code, name, flag_emoji) VALUES (?, ?, ?)')
       .run(code, name, flag_emoji);
 
+    logAdminAction(user.id, user.username, 'create', 'language', Number(result.lastInsertRowid), `Created language: ${name}`);
+
     const newLang = db.prepare('SELECT * FROM languages WHERE id = ?').get(Number(result.lastInsertRowid));
     return NextResponse.json({ language: newLang });
   } catch {
@@ -111,6 +113,8 @@ export async function PATCH(
     values.push(langId);
     db.prepare(`UPDATE languages SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 
+    logAdminAction(user.id, user.username, 'update', 'language', langId, 'Updated language');
+
     const updated = db.prepare('SELECT * FROM languages WHERE id = ?').get(langId);
     return NextResponse.json({ language: updated });
   } catch {
@@ -149,6 +153,9 @@ export async function DELETE(
     }
 
     db.prepare('DELETE FROM languages WHERE id = ?').run(langId);
+
+    logAdminAction(user.id, user.username, 'delete', 'language', langId, 'Deleted language');
+
     return NextResponse.json({ success: true });
   } catch {
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 });

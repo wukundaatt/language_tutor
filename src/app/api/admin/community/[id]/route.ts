@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, logAdminAction } from '@/lib/db';
 import { getAdminUser } from '@/lib/auth';
 
 export async function DELETE(
@@ -24,6 +24,8 @@ export async function DELETE(
     db.prepare('DELETE FROM post_likes WHERE post_id = ?').run(postId);
     db.prepare('DELETE FROM post_comments WHERE post_id = ?').run(postId);
     db.prepare('DELETE FROM community_posts WHERE id = ?').run(postId);
+
+    logAdminAction(user.id, user.username, 'delete', 'post', postId, 'Deleted post');
 
     return NextResponse.json({ success: true });
   } catch {

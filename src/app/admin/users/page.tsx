@@ -4,7 +4,9 @@ import { useEffect, useState } from 'react';
 import AdminLayout from '@/components/admin/AdminLayout';
 import DataTable from '@/components/admin/DataTable';
 import Modal, { FormField, inputClass } from '@/components/admin/Modal';
-import { UserPlus, Shield, UserX } from 'lucide-react';
+import { UserPlus, Shield, UserX, Download, Trash2 } from 'lucide-react';
+import { useDebounce } from '@/hooks/useAdminApi';
+import { useToast } from '@/hooks/useToast';
 
 interface UserItem {
   id: number;
@@ -23,6 +25,8 @@ function UsersContent() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [sortBy, setSortBy] = useState('id');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -33,15 +37,24 @@ function UsersContent() {
   const [deleteTarget, setDeleteTarget] = useState<UserItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const loadUsers = (query = '') => {
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [batchDeleting, setBatchDeleting] = useState(false);
+  const [batchDeleteOpen, setBatchDeleteOpen] = useState(false);
+
+  const { toast } = useToast();
+
+  const loadUsers = (query = '', sort = 'id', order = 'desc') => {
     setLoading(true);
-    fetch(`/api/admin/users${query ? `?q=${encodeURIComponent(query)}` : ''}`)
+    fetch(`/api/admin/users?q=${encodeURIComponent(query)}&sortBy=${sort}&order=${order}`)
       .then((res) => res.json())
       .then((d) => setUsers(d.users || []))
       .finally(() => setLoading(false));
   };
 
   useEffect(() => { loadUsers(); }, []);
+
+  const debouncedSearch = useDebounce(search, 300);
+  useEffect(() => { loadUsers(debouncedSearch, sortBy, sortOrder); }, [debouncedSearch, sortBy, sortOrder]);
 
   const handleAdd = () => { setForm(emptyForm); setEditMode(false); setCurrentId(null); setModalOpen(true); };
 
@@ -62,8 +75,9 @@ function UsersContent() {
         const res = await fetch('/api/admin/users', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
         if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || '创建失败'); }
       }
-      setModalOpen(false); loadUsers(search);
-    } catch (e) { alert(e instanceof Error ? e.message : '操作失败'); }
+      toast(editMode ? '用户更新成功' : '用户创建成功', 'success');
+      setModalOpen(false); loadUsers(search, sortBy, sortOrder);
+    } catch (e) { toast(e instanceof Error ? e.message : '操作失败', 'error'); }
     finally { setSaving(false); }
   };
 
@@ -73,15 +87,71 @@ function UsersContent() {
     try {
       const res = await fetch(`/api/admin/users/${deleteTarget.id}`, { method: 'DELETE' });
       if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || '删除失败'); }
-      setDeleteTarget(null); loadUsers(search);
-    } catch (e) { alert(e instanceof Error ? e.message : '删除失败'); }
+      toast('用户已删除', 'success');
+      setDeleteTarget(null); loadUsers(search, sortBy, sortOrder);
+    } catch (e) { toast(e instanceof Error ? e.message : '删除失败', 'error'); }
     finally { setDeleting(false); }
   };
 
+  const handleBatchDelete = async () => {
+    setBatchDeleting(true);
+    try {
+      const ids = Array.from(selectedIds).map(Number);
+      const res = await fetch('/api/admin/users/batch', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+      if (!res.ok) { const data = await res.json().catch(() => ({})); throw new Error(data.error || '批量删除失败'); }
+      const result = await res.json();
+      toast(`成功删除 ${result.deleted} 个用户`, 'success');
+      setSelectedIds(new Set());
+      setBatchDeleteOpen(false);
+      loadUsers(search, sortBy, sortOrder);
+    } catch (e) { toast(e instanceof Error ? e.message : '批量删除失败', 'error'); }
+    finally { setBatchDeleting(false); }
+  };
+
+  const handleExportCSV = () => {
+    if (users.length === 0) {
+      toast('暂无数据可导出', 'warning');
+      return;
+    }
+
+    const headers = ['ID', '用户名', '邮箱', '等级', '经验值', '连续天数', '管理员', '注册时间'];
+    const rows = users.map((u) => [
+      u.id,
+      u.username,
+      u.email,
+      u.level,
+      u.xp,
+      u.streak,
+      u.is_admin ? '是' : '否',
+      new Date(u.created_at).toLocaleDateString('zh-CN'),
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')),
+    ].join('\n');
+
+    // Add BOM for Excel UTF-8 compatibility
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `users_export_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast('导出成功', 'success');
+  };
+
   const columns = [
-    { key: 'id', label: 'ID', className: 'w-16' },
+    { key: 'id', label: 'ID', className: 'w-16', sortable: true },
     {
       key: 'username', label: '用户',
+      sortable: true,
       render: (row: UserItem) => (
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -100,9 +170,9 @@ function UsersContent() {
         </div>
       ),
     },
-    { key: 'level', label: '等级', render: (row: UserItem) => <span className="text-sm">Lv.{row.level}</span> },
-    { key: 'xp', label: '经验', render: (row: UserItem) => <span className="text-sm text-[var(--accent)] font-medium">{row.xp} XP</span> },
-    { key: 'created_at', label: '注册时间', render: (row: UserItem) => <span className="text-xs text-[var(--muted)]">{new Date(row.created_at).toLocaleDateString('zh-CN')}</span> },
+    { key: 'level', label: '等级', sortable: true, render: (row: UserItem) => <span className="text-sm">Lv.{row.level}</span> },
+    { key: 'xp', label: '经验', sortable: true, render: (row: UserItem) => <span className="text-sm text-[var(--accent)] font-medium">{row.xp} XP</span> },
+    { key: 'created_at', label: '注册时间', sortable: true, render: (row: UserItem) => <span className="text-xs text-[var(--muted)]">{new Date(row.created_at).toLocaleDateString('zh-CN')}</span> },
   ];
 
   return (
@@ -117,7 +187,7 @@ function UsersContent() {
           <div className="relative flex-1 max-w-sm">
             <input
               type="text" placeholder="搜索用户名或邮箱..." value={search}
-              onChange={(e) => { setSearch(e.target.value); loadUsers(e.target.value); }}
+              onChange={(e) => { setSearch(e.target.value); }}
               className={inputClass}
             />
           </div>
@@ -125,8 +195,24 @@ function UsersContent() {
             className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-[var(--accent)] to-[#c49a3c] text-[#0b1121] rounded-xl hover:shadow-[0_4px_20px_rgba(212,168,83,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
             <UserPlus className="w-4 h-4" />新增用户
           </button>
+          <button
+            onClick={handleExportCSV}
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold border border-[rgba(212,168,83,0.15)] text-[var(--accent)] rounded-xl hover:bg-[var(--accent)]/10 transition-all duration-200"
+          >
+            <Download className="w-4 h-4" />
+            导出 CSV
+          </button>
+          {selectedIds.size > 0 && (
+            <button
+              onClick={() => setBatchDeleteOpen(true)}
+              className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-rose-500/10 border border-rose-500/30 text-rose-400 rounded-xl hover:bg-rose-500/20 transition-all duration-200"
+            >
+              <Trash2 className="w-4 h-4" />
+              批量删除 ({selectedIds.size})
+            </button>
+          )}
         </div>
-        <DataTable columns={columns} data={users} loading={loading} onEdit={handleEdit} onDelete={(row) => setDeleteTarget(row)} emptyText="暂无用户" />
+        <DataTable columns={columns} data={users} loading={loading} onEdit={handleEdit} onDelete={(row) => setDeleteTarget(row)} emptyText="暂无用户" sortBy={sortBy} sortOrder={sortOrder} onSort={(key, order) => { setSortBy(key); setSortOrder(order); }} selectable selectedIds={selectedIds} onSelectionChange={setSelectedIds} />
       </div>
 
       {/* Edit/Add modal */}
@@ -168,6 +254,14 @@ function UsersContent() {
         title="确认删除" danger confirmLabel="删除" loading={deleting}
         message={`确定要删除用户 ${deleteTarget?.username} 吗？`}
         detail="此操作将删除该用户的所有学习记录、社区帖子和评论，且不可恢复。"
+      />
+
+      {/* Batch delete confirm */}
+      <Modal.Confirm
+        open={batchDeleteOpen} onClose={() => setBatchDeleteOpen(false)} onConfirm={handleBatchDelete}
+        title="批量删除确认" danger confirmLabel="删除" loading={batchDeleting}
+        message={`确定要批量删除 ${selectedIds.size} 个用户吗？`}
+        detail="此操作将删除所选用户的所有学习记录、社区帖子和评论，且不可恢复。"
       />
     </div>
   );

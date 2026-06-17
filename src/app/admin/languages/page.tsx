@@ -5,6 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import DataTable from '@/components/admin/DataTable';
 import Modal, { FormField, inputClass } from '@/components/admin/Modal';
 import { Plus } from 'lucide-react';
+import { useToast } from '@/hooks/useToast';
 
 interface LangItem { id: number; code: string; name: string; flag_emoji: string; course_count: number; }
 
@@ -20,6 +21,8 @@ function LanguagesContent() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<LangItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const { toast } = useToast();
 
   const loadLangs = () => {
     setLoading(true);
@@ -41,8 +44,9 @@ function LanguagesContent() {
         const res = await fetch('/api/admin/languages', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
         if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || '创建失败'); }
       }
+      toast(editMode ? '语言更新成功' : '语言创建成功', 'success');
       setModalOpen(false); loadLangs();
-    } catch (e) { alert(e instanceof Error ? e.message : '操作失败'); }
+    } catch (e) { toast(e instanceof Error ? e.message : '操作失败', 'error'); }
     finally { setSaving(false); }
   };
 
@@ -52,8 +56,9 @@ function LanguagesContent() {
     try {
       const res = await fetch(`/api/admin/languages/${deleteTarget.id}`, { method: 'DELETE' });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || '删除失败'); }
+      toast('语言已删除', 'success');
       setDeleteTarget(null); loadLangs();
-    } catch (e) { alert(e instanceof Error ? e.message : '删除失败'); }
+    } catch (e) { toast(e instanceof Error ? e.message : '删除失败', 'error'); }
     finally { setDeleting(false); }
   };
 
@@ -72,7 +77,7 @@ function LanguagesContent() {
           <button onClick={handleAdd} className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-[var(--accent)] to-[#c49a3c] text-[#0b1121] rounded-xl hover:shadow-[0_4px_20px_rgba(212,168,83,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200"><Plus className="w-4 h-4" />新增语言</button>
         </div>
         <DataTable columns={columns} data={languages} loading={loading} onEdit={handleEdit}
-          onDelete={(row) => { if (row.course_count > 0) { alert('该语言下有课程，请先删除相关课程'); return; } setDeleteTarget(row); }}
+          onDelete={(row) => { if (row.course_count > 0) { toast('该语言下有课程，请先删除相关课程', 'warning'); return; } setDeleteTarget(row); }}
           emptyText="暂无语言" />
       </div>
 

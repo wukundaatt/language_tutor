@@ -8,6 +8,8 @@ import {
   LogOut, Menu, X, Shield, Bell, ChevronDown, Clock, Zap,
 } from 'lucide-react';
 import { AdminAuthProvider, useAdminAuth } from './AdminAuthContext';
+import { ToastProvider } from '@/hooks/useToast';
+import Toaster from '@/components/admin/Toast';
 
 /* ─── Constants ─── */
 
@@ -24,9 +26,11 @@ const NAV_ITEMS = [
 
 function AdminRoot({ children }: { children: ReactNode }) {
   return (
-    <AdminAuthProvider>
-      <AdminShell>{children}</AdminShell>
-    </AdminAuthProvider>
+    <ToastProvider>
+      <AdminAuthProvider>
+        <AdminShell>{children}</AdminShell>
+      </AdminAuthProvider>
+    </ToastProvider>
   );
 }
 
@@ -81,6 +85,7 @@ function AdminShell({ children }: { children: ReactNode }) {
           <div className="mx-auto max-w-7xl px-4 md:px-6 py-6 animate-page-enter">
             {children}
           </div>
+          <Toaster />
         </main>
       </div>
     </div>

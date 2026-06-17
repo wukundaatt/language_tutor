@@ -5,6 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import DataTable from '@/components/admin/DataTable';
 import Modal, { FormField, inputClass } from '@/components/admin/Modal';
 import { Award, Plus } from 'lucide-react';
+import { useToast } from '@/hooks/useToast';
 
 interface BadgeItem { id: number; name: string; icon: string; description: string; condition: string; user_count: number; }
 
@@ -21,6 +22,8 @@ function BadgesContent() {
   const [saving, setSaving] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<BadgeItem | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const { toast } = useToast();
 
   const loadBadges = () => {
     setLoading(true);
@@ -45,8 +48,9 @@ function BadgesContent() {
         const res = await fetch('/api/admin/badges', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
         if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || '创建失败'); }
       }
+      toast(editMode ? '徽章更新成功' : '徽章创建成功', 'success');
       setModalOpen(false); loadBadges();
-    } catch (e) { alert(e instanceof Error ? e.message : '操作失败'); }
+    } catch (e) { toast(e instanceof Error ? e.message : '操作失败', 'error'); }
     finally { setSaving(false); }
   };
 
@@ -56,8 +60,9 @@ function BadgesContent() {
     try {
       const res = await fetch(`/api/admin/badges/${deleteTarget.id}`, { method: 'DELETE' });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || '删除失败'); }
+      toast('徽章已删除', 'success');
       setDeleteTarget(null); loadBadges();
-    } catch (e) { alert(e instanceof Error ? e.message : '删除失败'); }
+    } catch (e) { toast(e instanceof Error ? e.message : '删除失败', 'error'); }
     finally { setDeleting(false); }
   };
 

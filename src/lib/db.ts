@@ -46,6 +46,27 @@ export function initDb(): void {
     // 忽略迁移错误
   }
 
+  // 迁移: 如果 audit_logs 表不存在则创建
+  try {
+    const tables = database.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='audit_logs'").all() as { name: string }[];
+    if (tables.length === 0) {
+      database.exec(`
+        CREATE TABLE audit_logs (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          admin_id INTEGER NOT NULL,
+          admin_username TEXT NOT NULL,
+          action TEXT NOT NULL,
+          target_type TEXT NOT NULL,
+          target_id INTEGER,
+          details TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );
+      `);
+    }
+  } catch {
+    // 忽略迁移错误
+  }
+
   database.exec(`
 
     CREATE TABLE IF NOT EXISTS languages (
@@ -198,7 +219,32 @@ export function initDb(): void {
       content TEXT NOT NULL,
       created_at TEXT DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS audit_logs (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      admin_id INTEGER NOT NULL,
+      admin_username TEXT NOT NULL,
+      action TEXT NOT NULL,
+      target_type TEXT NOT NULL,
+      target_id INTEGER,
+      details TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    );
   `);
+}
+
+export function logAdminAction(
+  adminId: number,
+  adminUsername: string,
+  action: string,
+  targetType: string,
+  targetId?: number,
+  details?: string
+): void {
+  const db = getDb();
+  db.prepare(
+    'INSERT INTO audit_logs (admin_id, admin_username, action, target_type, target_id, details) VALUES (?, ?, ?, ?, ?, ?)'
+  ).run(adminId, adminUsername, action, targetType, targetId ?? null, details ?? null);
 }
 
 export function closeDb(): void {

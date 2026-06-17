@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ReactNode } from 'react';
-import { ChevronLeft, ChevronRight, Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Search, Plus, Pencil, Trash2 } from 'lucide-react';
 
 /* ─── Types ─── */
 
@@ -10,6 +10,7 @@ export interface Column<T> {
   label: string;
   render?: (row: T) => ReactNode;
   className?: string;
+  sortable?: boolean;
 }
 
 interface DataTableProps<T> {
@@ -26,6 +27,12 @@ interface DataTableProps<T> {
   rowId?: string;
   loading?: boolean;
   skeletonRows?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  onSort?: (key: string, order: 'asc' | 'desc') => void;
+  selectable?: boolean;
+  selectedIds?: Set<string>;
+  onSelectionChange?: (ids: Set<string>) => void;
 }
 
 /* ─── Component ─── */
@@ -34,6 +41,8 @@ export default function DataTable<T>({
   columns, data, searchable = false, searchKeys, onAdd, onEdit, onDelete,
   addLabel = '新增', emptyText = '暂无数据', pageSize = 10, rowId,
   loading = false, skeletonRows = 5,
+  sortBy, sortOrder, onSort,
+  selectable = false, selectedIds = new Set(), onSelectionChange,
 }: DataTableProps<T>) {
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
@@ -59,6 +68,32 @@ export default function DataTable<T>({
 
   const resolveRowKey = (row: T, idx: number) =>
     rowId ? String((row as unknown as Record<string, unknown>)[rowId] ?? idx) : String(idx);
+
+  const currentPageRowIds = pageData.map((row, idx) => resolveRowKey(row, idx));
+  const allCurrentPageSelected = currentPageRowIds.length > 0 && currentPageRowIds.every((id) => selectedIds.has(id));
+  const someCurrentPageSelected = currentPageRowIds.some((id) => selectedIds.has(id));
+
+  const handleSelectAll = () => {
+    if (!onSelectionChange) return;
+    const next = new Set(selectedIds);
+    if (allCurrentPageSelected) {
+      currentPageRowIds.forEach((id) => next.delete(id));
+    } else {
+      currentPageRowIds.forEach((id) => next.add(id));
+    }
+    onSelectionChange(next);
+  };
+
+  const handleSelectOne = (id: string) => {
+    if (!onSelectionChange) return;
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    onSelectionChange(next);
+  };
 
   return (
     <div className="bg-[#0c1324] border border-[rgba(212,168,83,0.08)] rounded-2xl overflow-hidden">
@@ -88,14 +123,42 @@ export default function DataTable<T>({
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-[rgba(212,168,83,0.03)]">
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={`px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-[0.06em] whitespace-nowrap ${col.className ?? ''}`}
-                >
-                  {col.label}
+              {selectable && (
+                <th className="px-4 py-3 w-10">
+                  <input
+                    type="checkbox"
+                    checked={allCurrentPageSelected}
+                    ref={(el) => { if (el) el.indeterminate = !allCurrentPageSelected && someCurrentPageSelected; }}
+                    onChange={handleSelectAll}
+                    className="w-4 h-4 rounded border-[rgba(212,168,83,0.2)] bg-[#080d18] text-[var(--accent)] focus:ring-[var(--accent)]/30 cursor-pointer"
+                  />
                 </th>
-              ))}
+              )}
+              {columns.map((col) => {
+                const isSorted = sortBy === col.key;
+                const isAsc = isSorted && sortOrder === 'asc';
+                return (
+                  <th
+                    key={col.key}
+                    className={`px-4 py-3 text-left text-xs font-semibold text-[var(--muted)] uppercase tracking-[0.06em] whitespace-nowrap ${col.className ?? ''}`}
+                  >
+                    {col.sortable && onSort ? (
+                      <button
+                        onClick={() => onSort(col.key, isSorted && !isAsc ? 'asc' : 'desc')}
+                        className="inline-flex items-center gap-1 hover:text-[var(--foreground)] transition-colors"
+                      >
+                        {col.label}
+                        <span className="flex flex-col -space-y-1">
+                          <ChevronUp className={`w-3 h-3 ${isSorted && isAsc ? 'text-[var(--accent)]' : 'text-[var(--muted)]/40'}`} />
+                          <ChevronDown className={`w-3 h-3 ${isSorted && !isAsc ? 'text-[var(--accent)]' : 'text-[var(--muted)]/40'}`} />
+                        </span>
+                      </button>
+                    ) : (
+                      col.label
+                    )}
+                  </th>
+                );
+              })}
               {hasActions && (
                 <th className="px-4 py-3 text-right text-xs font-semibold text-[var(--muted)] uppercase tracking-[0.06em] whitespace-nowrap">
                   操作
@@ -105,11 +168,11 @@ export default function DataTable<T>({
           </thead>
           <tbody>
             {loading ? (
-              <TableSkeleton columns={columns.length} rows={skeletonRows} hasActions={hasActions} />
+              <TableSkeleton columns={columns.length} rows={skeletonRows} hasActions={hasActions} selectable={selectable} />
             ) : pageData.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length + (hasActions ? 1 : 0)}
+                  colSpan={columns.length + (hasActions ? 1 : 0) + (selectable ? 1 : 0)}
                   className="px-4 py-16 text-center"
                 >
                   <div className="flex flex-col items-center gap-2">
@@ -126,6 +189,16 @@ export default function DataTable<T>({
                   key={resolveRowKey(row, idx)}
                   className="border-t border-[rgba(212,168,83,0.04)] hover:bg-[rgba(212,168,83,0.03)] transition-colors"
                 >
+                  {selectable && (
+                    <td className="px-4 py-3 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(resolveRowKey(row, idx))}
+                        onChange={() => handleSelectOne(resolveRowKey(row, idx))}
+                        className="w-4 h-4 rounded border-[rgba(212,168,83,0.2)] bg-[#080d18] text-[var(--accent)] focus:ring-[var(--accent)]/30 cursor-pointer"
+                      />
+                    </td>
+                  )}
                   {columns.map((col) => (
                     <td
                       key={col.key}
@@ -216,11 +289,16 @@ export function TableSearch({ value, onChange }: { value: string; onChange: (v: 
   );
 }
 
-function TableSkeleton({ columns, rows, hasActions }: { columns: number; rows: number; hasActions: boolean }) {
+function TableSkeleton({ columns, rows, hasActions, selectable }: { columns: number; rows: number; hasActions: boolean; selectable?: boolean }) {
   return (
     <>
       {Array.from({ length: rows }).map((_, i) => (
         <tr key={i} className="border-t border-[rgba(212,168,83,0.04)]">
+          {selectable && (
+            <td className="px-4 py-3 w-10">
+              <div className="w-4 h-4 rounded bg-[rgba(212,168,83,0.06)] animate-skeleton" />
+            </td>
+          )}
           {Array.from({ length: columns }).map((_, j) => (
             <td key={j} className="px-4 py-3">
               <div

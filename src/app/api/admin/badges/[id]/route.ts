@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, logAdminAction } from '@/lib/db';
 import { getAdminUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -62,6 +62,8 @@ export async function PATCH(
     values.push(badgeId);
     db.prepare(`UPDATE badges SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 
+    logAdminAction(user.id, user.username, 'update', 'badge', badgeId, 'Updated badge');
+
     const updated = db.prepare('SELECT * FROM badges WHERE id = ?').get(badgeId);
     return NextResponse.json({ badge: updated });
   } catch {
@@ -90,6 +92,8 @@ export async function DELETE(
 
     db.prepare('DELETE FROM user_badges WHERE badge_id = ?').run(badgeId);
     db.prepare('DELETE FROM badges WHERE id = ?').run(badgeId);
+
+    logAdminAction(user.id, user.username, 'delete', 'badge', badgeId, 'Deleted badge');
 
     return NextResponse.json({ success: true });
   } catch {

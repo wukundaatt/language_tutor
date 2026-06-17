@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, logAdminAction } from '@/lib/db';
 import { getAdminUser } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
@@ -115,6 +115,8 @@ export async function PATCH(
     values.push(targetId);
     db.prepare(`UPDATE users SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 
+    logAdminAction(user.id, user.username, 'update', 'user', targetId, 'Updated user fields');
+
     const updated = db.prepare('SELECT * FROM users WHERE id = ?').get(targetId);
     return NextResponse.json({ user: updated });
   } catch {
@@ -141,7 +143,7 @@ export async function DELETE(
 
   try {
     const db = getDb();
-    const existing = db.prepare('SELECT id FROM users WHERE id = ?').get(targetId);
+    const existing = db.prepare('SELECT id, username FROM users WHERE id = ?').get(targetId) as { id: number; username: string } | undefined;
     if (!existing) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
@@ -162,6 +164,8 @@ export async function DELETE(
       db.exec('ROLLBACK');
       throw new Error('Delete failed');
     }
+
+    logAdminAction(user.id, user.username, 'delete', 'user', targetId, `Deleted user: ${existing.username}`);
 
     return NextResponse.json({ success: true });
   } catch {

@@ -5,6 +5,8 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import DataTable from '@/components/admin/DataTable';
 import Modal, { FormField, inputClass } from '@/components/admin/Modal';
 import { BookOpen } from 'lucide-react';
+import { useDebounce } from '@/hooks/useAdminApi';
+import { useToast } from '@/hooks/useToast';
 
 interface CourseItem {
   id: number; title: string; description: string; level: string;
@@ -29,6 +31,8 @@ function CoursesContent() {
   const [deleteTarget, setDeleteTarget] = useState<CourseItem | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  const { toast } = useToast();
+
   const loadAll = () => {
     setLoading(true);
     Promise.all([
@@ -47,6 +51,9 @@ function CoursesContent() {
 
   useEffect(() => { loadAll(); }, []);
 
+  const debouncedSearch = useDebounce(search, 300);
+  useEffect(() => { loadAll(); }, [debouncedSearch]);
+
   const handleAdd = () => { setForm(emptyForm); setEditMode(false); setCurrentId(null); setModalOpen(true); };
   const handleEdit = (row: CourseItem) => {
     setForm({ language_id: row.language_id, title: row.title, description: row.description, level: row.level, cover_color: row.cover_color, sort_order: row.sort_order });
@@ -63,8 +70,9 @@ function CoursesContent() {
         const res = await fetch('/api/admin/courses', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
         if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || '创建失败'); }
       }
+      toast(editMode ? '课程更新成功' : '课程创建成功', 'success');
       setModalOpen(false); loadAll();
-    } catch (e) { alert(e instanceof Error ? e.message : '操作失败'); }
+    } catch (e) { toast(e instanceof Error ? e.message : '操作失败', 'error'); }
     finally { setSaving(false); }
   };
 
@@ -74,8 +82,9 @@ function CoursesContent() {
     try {
       const res = await fetch(`/api/admin/courses/${deleteTarget.id}`, { method: 'DELETE' });
       if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || '删除失败'); }
+      toast('课程已删除', 'success');
       setDeleteTarget(null); loadAll();
-    } catch (e) { alert(e instanceof Error ? e.message : '删除失败'); }
+    } catch (e) { toast(e instanceof Error ? e.message : '删除失败', 'error'); }
     finally { setDeleting(false); }
   };
 
@@ -106,7 +115,7 @@ function CoursesContent() {
       <div className="bg-[#0c1324] border border-[rgba(212,168,83,0.08)] rounded-2xl overflow-hidden">
         <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[rgba(212,168,83,0.06)]">
           <div className="relative flex-1 max-w-sm">
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') loadAll(); }} className={inputClass} placeholder="搜索课程..." />
+            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)} className={inputClass} placeholder="搜索课程..." />
           </div>
           <button onClick={handleAdd} className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-gradient-to-br from-[var(--accent)] to-[#c49a3c] text-[#0b1121] rounded-xl hover:shadow-[0_4px_20px_rgba(212,168,83,0.35)] hover:-translate-y-0.5 active:translate-y-0 transition-all duration-200">
             <BookOpen className="w-4 h-4" />新增课程

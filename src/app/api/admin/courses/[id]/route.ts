@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getDb } from '@/lib/db';
+import { getDb, logAdminAction } from '@/lib/db';
 import { getAdminUser } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -101,6 +101,8 @@ export async function PATCH(
     values.push(courseId);
     db.prepare(`UPDATE courses SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 
+    logAdminAction(user.id, user.username, 'update', 'course', courseId, 'Updated course');
+
     const updated = db.prepare('SELECT * FROM courses WHERE id = ?').get(courseId);
     return NextResponse.json({ course: updated });
   } catch {
@@ -122,7 +124,7 @@ export async function DELETE(
 
   try {
     const db = getDb();
-    const existing = db.prepare('SELECT id FROM courses WHERE id = ?').get(courseId);
+    const existing = db.prepare('SELECT id, title FROM courses WHERE id = ?').get(courseId) as { id: number; title: string } | undefined;
     if (!existing) {
       return NextResponse.json({ error: 'Course not found' }, { status: 404 });
     }
@@ -154,6 +156,8 @@ export async function DELETE(
       db.exec('ROLLBACK');
       throw new Error('Delete failed');
     }
+
+    logAdminAction(user.id, user.username, 'delete', 'course', courseId, `Deleted course: ${existing.title}`);
 
     return NextResponse.json({ success: true });
   } catch {
