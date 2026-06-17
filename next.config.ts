@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
     "127.0.0.1",
     "localhost",
   ],
+  async headers() {
+    return [
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Origin", value: "*" },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;
